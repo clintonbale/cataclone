@@ -37,7 +37,6 @@ int main(int argc, char* argv[])
     FILE* ferr = freopen( "CON", "w", stderr );
 #endif
     graphics_init();
-    //sound_manager_init();
     gl_draw_init();
     catacomb_graphics_init();
 
@@ -46,7 +45,7 @@ int main(int argc, char* argv[])
 
     gltexture_t* tiles = gl_find_gltexture("TILES");
 
-    level_t* level_one = level_load("LEVEL1.CAT");
+    catacomb_level_change(1);
 
     while(running) {
         while(SDL_PollEvent(&event)) {
@@ -54,6 +53,8 @@ int main(int argc, char* argv[])
                 case SDL_KEYUP:
                     if(event.key.keysym.sym == SDLK_ESCAPE)
                         running = false;
+                    if(event.key.keysym.sym == SDLK_SPACE)
+                        catacomb_level_next();
                     //other stuff?
                     break;
                 case SDL_QUIT:
@@ -83,7 +84,7 @@ int main(int argc, char* argv[])
         //draw the map!
         for(int y = 0; y < 64; y++) {
             for(int x = 0; x < 64; x++) {
-                gl_draw_tile_spritesheet(tiles, level_one->tiles[(y*64)+x]*8, x*8, y*8);
+                gl_draw_tile_spritesheet(tiles, catacomb_level_current()->tiles[(y*64)+x]*8, x*8, y*8);
             }
         }
 
@@ -92,7 +93,6 @@ int main(int argc, char* argv[])
     }
 
     gl_draw_finish();
-    sound_manager_finish();
     graphics_finish();
     catacomb_sounds_finish();
     catacomb_graphics_finish();
