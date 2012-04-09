@@ -4,14 +4,20 @@
 	<File name="..\..\src\bool.h" open="0" top="0" tabpos="11">
 		<Cursor position="112" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_data.h" open="0" top="0" tabpos="7">
+	<File name="..\..\src\catacomb\catacomb_data.h" open="1" top="0" tabpos="8">
 		<Cursor position="92" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_graphics.c" open="1" top="1" tabpos="5">
-		<Cursor position="1552" topLine="27" />
+	<File name="..\..\src\catacomb\catacomb_graphics.c" open="1" top="0" tabpos="4">
+		<Cursor position="802" topLine="54" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_graphics.h" open="1" top="0" tabpos="6">
+	<File name="..\..\src\catacomb\catacomb_graphics.h" open="0" top="0" tabpos="5">
 		<Cursor position="163" topLine="0" />
+	</File>
+	<File name="..\..\src\catacomb\catacomb_level.c" open="1" top="0" tabpos="7">
+		<Cursor position="31" topLine="0" />
+	</File>
+	<File name="..\..\src\catacomb\catacomb_level.h" open="1" top="0" tabpos="6">
+		<Cursor position="1917" topLine="23" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_scores.c" open="0" top="0" tabpos="5">
 		<Cursor position="429" topLine="0" />
@@ -28,7 +34,7 @@
 	<File name="..\..\src\common.c" open="0" top="0" tabpos="3">
 		<Cursor position="0" topLine="0" />
 	</File>
-	<File name="..\..\src\common.h" open="0" top="0" tabpos="10">
+	<File name="..\..\src\common.h" open="1" top="0" tabpos="5">
 		<Cursor position="297" topLine="0" />
 	</File>
 	<File name="..\..\src\draw.c" open="1" top="0" tabpos="2">
@@ -41,13 +47,13 @@
 		<Cursor position="776" topLine="9" />
 	</File>
 	<File name="..\..\src\graphics.c" open="1" top="0" tabpos="3">
-		<Cursor position="2067" topLine="0" />
+		<Cursor position="322" topLine="29" />
 	</File>
-	<File name="..\..\src\graphics.h" open="1" top="0" tabpos="4">
-		<Cursor position="85" topLine="0" />
+	<File name="..\..\src\graphics.h" open="1" top="0" tabpos="9">
+		<Cursor position="322" topLine="0" />
 	</File>
-	<File name="..\..\src\main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2141" topLine="0" />
+	<File name="..\..\src\main.c" open="1" top="1" tabpos="1">
+		<Cursor position="1802" topLine="54" />
 	</File>
 	<File name="..\..\src\sound_manager.c" open="0" top="0" tabpos="1">
 		<Cursor position="1609" topLine="48" />

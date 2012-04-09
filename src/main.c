@@ -9,6 +9,7 @@
 #include "catacomb/catacomb_sound.h"
 #include "catacomb/catacomb_scores.h"
 #include "catacomb/catacomb_graphics.h"
+#include "catacomb/catacomb_level.h"
 
 void SDL_ShowFPS() {
     #define ALPHA 0.2
@@ -36,7 +37,7 @@ int main(int argc, char* argv[])
     FILE* ferr = freopen( "CON", "w", stderr );
 #endif
     graphics_init();
-    sound_manager_init();
+    //sound_manager_init();
     gl_draw_init();
     catacomb_graphics_init();
 
@@ -44,6 +45,9 @@ int main(int argc, char* argv[])
     SDL_Event event;
 
     gltexture_t* tiles = gl_find_gltexture("TILES");
+
+    level_t* level_one = level_load("LEVEL1.CAT");
+
     while(running) {
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
@@ -69,21 +73,17 @@ int main(int argc, char* argv[])
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
+        //draw the pink background
+        for(int y = 0; y < graphics_viewport_height()/8; y++) {
+            for(int x = 0; x < graphics_viewport_width()/8; x++) {
+                gl_draw_tile_spritesheet(tiles, ('z'+7)*8, x*8, y*8);
+            }
+        }
 
-        int x = 0;
-        int y = 0;
-        /*
-        gl_draw_tile_spritesheet(tiles, 300<<3, x, y);
-        gl_draw_tile_spritesheet(tiles, 301<<3, x+8, y);
-        gl_draw_tile_spritesheet(tiles, 302<<3, x, y+8);
-        gl_draw_tile_spritesheet(tiles, 303<<3, x+8, y+8);*/
-
-        for(int i = 0; i < 11696/8; i++) {
-            gl_draw_tile_spritesheet(tiles, i<<3, x, y);
-            x+=8;
-            if(x > 44*8) {
-                x = 0;
-                y+=8;
+        //draw the map!
+        for(int y = 0; y < 64; y++) {
+            for(int x = 0; x < 64; x++) {
+                gl_draw_tile_spritesheet(tiles, level_one->tiles[(y*64)+x]*8, x*8, y*8);
             }
         }
 
