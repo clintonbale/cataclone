@@ -53,7 +53,6 @@ GLuint catacomb_graphics_load_tiles(const char* ident, byte* data) {
     SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, NUM_EGA_TILES*TILE_WIDTH, TILE_HEIGHT,32,0,0,0,0);
     if(!pic) { error("CreateRGBSurface failed: %s", SDL_GetError()); }
 
-
     for(uint i = 0; i < EGA_DATA_LENGTH; i += EGA_TILE_SIZE) {
         for(byte y = 0; y < 8; ++y) {
             for(byte x = 0; x < 8; ++x) {

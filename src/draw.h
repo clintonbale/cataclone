@@ -9,7 +9,7 @@
 
 typedef struct {
     GLuint texnum;
-    char identifier[64];
+    char identifier[32];
     int width, height;
 } gltexture_t;
 
