@@ -4,6 +4,8 @@
 #include "catacomb_data.h"
 
 #include "../draw.h"
+#include "../graphics.h"
+
 #define put_pixel(s,x,y,v) ((uint*)s->pixels)[((y)*s->w)+(x)]=(v)
 
 #define PIC_COLOR_COUNT 4
@@ -48,11 +50,7 @@ GLuint catacomb_graphics_load_pic(const char* ident, byte* data) {
 
 
 GLuint catacomb_graphics_load_tiles(const char* ident, byte* data) {
-#if GRAPHICS_MODE == EGA
     SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, NUM_EGA_TILES*TILE_WIDTH, TILE_HEIGHT,32,0,0,0,0);
-#else
-    SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, NUM_CGA_TILES*TILE_WIDTH, TILE_HEIGHT,32,0,0,0,0);
-#endif
     if(!pic) { error("CreateRGBSurface failed: %s", SDL_GetError()); }
 
 
@@ -86,11 +84,17 @@ GLuint catacomb_graphics_load_tiles(const char* ident, byte* data) {
 void catacomb_graphics_init() {
     catacomb_graphics_load_pic("TITLE", &TITLE_PIC);
     catacomb_graphics_load_pic("END", &END_PIC);
-#if GRAPHICS_MODE == EGA
-    catacomb_graphics_load_tiles("TILES", &EGA_DATA);
-#else
-    catacomb_graphics_load_tiles("TILES", &CGA_DATA);
-#endif
+
+    graphics_mode_t mode = graphics_get_mode();
+    if(mode == GFX_MODE_EGA) {
+        catacomb_graphics_load_tiles("TILES", &EGA_DATA);
+    }
+    else if(mode == GFX_MODE_CGA) {
+        catacomb_graphics_load_tiles("TILES", &CGA_DATA);
+    }
+    else {
+        error("Invalid graphics mode: %d", mode);
+    }
 }
 
 void catacomb_graphics_finish() {
