@@ -49,6 +49,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\src\catacomb\catacomb_graphics.h" />
+		<Unit filename="..\..\src\catacomb\catacomb_level.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\catacomb\catacomb_level.h" />
 		<Unit filename="..\..\src\catacomb\catacomb_scores.c">
 			<Option compilerVar="CC" />
 		</Unit>
