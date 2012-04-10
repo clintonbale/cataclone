@@ -1,11 +1,10 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#include "bool.h"
-#include "error.h"
-
+#include "common.h"
 #include "graphics.h"
 #include "draw.h"
+
 #include "catacomb/catacomb_sound.h"
 #include "catacomb/catacomb_scores.h"
 #include "catacomb/catacomb_graphics.h"

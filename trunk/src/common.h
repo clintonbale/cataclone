@@ -2,8 +2,12 @@
 #define _COMMON_H_
 
 #include <stdint.h>
-#include "bool.h"
 #include "error.h"
+
+#undef bool
+#undef true
+#undef false
+typedef enum {false, true} bool;
 
 typedef uint8_t     byte;
 typedef uint16_t    ushort;

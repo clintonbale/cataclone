@@ -1,6 +1,5 @@
 #include "graphics.h"
-#include "bool.h"
-#include "error.h"
+#include "common.h"
 
 #include <SDL.h>
 #include <SDL_opengl.h>
