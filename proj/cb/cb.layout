@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="Release" />
-	<File name="..\..\src\bool.h" open="0" top="0" tabpos="11">
-		<Cursor position="112" topLine="0" />
-	</File>
+	<ActiveTarget name="Debug" />
 	<File name="..\..\src\catacomb\catacomb_data.h" open="0" top="0" tabpos="8">
 		<Cursor position="92" topLine="0" />
 	</File>
@@ -31,34 +28,34 @@
 	<File name="..\..\src\catacomb\catacomb_sound.h" open="0" top="0" tabpos="5">
 		<Cursor position="623" topLine="9" />
 	</File>
-	<File name="..\..\src\common.c" open="0" top="0" tabpos="6">
+	<File name="..\..\src\common.c" open="1" top="0" tabpos="6">
 		<Cursor position="0" topLine="0" />
 	</File>
-	<File name="..\..\src\common.h" open="0" top="0" tabpos="5">
-		<Cursor position="297" topLine="0" />
+	<File name="..\..\src\common.h" open="1" top="0" tabpos="4">
+		<Cursor position="109" topLine="0" />
 	</File>
-	<File name="..\..\src\draw.c" open="1" top="1" tabpos="2">
-		<Cursor position="4075" topLine="115" />
+	<File name="..\..\src\draw.c" open="1" top="0" tabpos="2">
+		<Cursor position="1309" topLine="0" />
 	</File>
-	<File name="..\..\src\draw.h" open="0" top="0" tabpos="4">
-		<Cursor position="269" topLine="0" />
+	<File name="..\..\src\draw.h" open="1" top="0" tabpos="7">
+		<Cursor position="67" topLine="0" />
 	</File>
-	<File name="..\..\src\error.h" open="0" top="0" tabpos="7">
-		<Cursor position="521" topLine="11" />
+	<File name="..\..\src\error.h" open="1" top="0" tabpos="8">
+		<Cursor position="114" topLine="0" />
 	</File>
-	<File name="..\..\src\graphics.c" open="0" top="0" tabpos="1">
-		<Cursor position="1713" topLine="49" />
+	<File name="..\..\src\graphics.c" open="1" top="0" tabpos="5">
+		<Cursor position="42" topLine="0" />
 	</File>
-	<File name="..\..\src\graphics.h" open="0" top="0" tabpos="5">
+	<File name="..\..\src\graphics.h" open="1" top="0" tabpos="9">
 		<Cursor position="152" topLine="0" />
 	</File>
-	<File name="..\..\src\main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2377" topLine="63" />
+	<File name="..\..\src\main.c" open="1" top="1" tabpos="1">
+		<Cursor position="288" topLine="0" />
 	</File>
 	<File name="..\..\src\sound_manager.c" open="0" top="0" tabpos="1">
 		<Cursor position="1609" topLine="48" />
 	</File>
-	<File name="..\..\src\sound_manager.h" open="0" top="0" tabpos="2">
-		<Cursor position="161" topLine="0" />
+	<File name="..\..\src\sound_manager.h" open="1" top="0" tabpos="10">
+		<Cursor position="56" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>
