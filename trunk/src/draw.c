@@ -135,6 +135,15 @@ GLuint gl_load_from_file(const char* filePath, const char* ident) {
     return texid;
 }
 
+void gl_draw_string_spritesheet(gltexture_t* spritesheet, const char* str, int x, int y ) {
+    char* s = (char*)str;
+    while(*s) {
+        if(*s >= '!' && *s <= '~')
+            gl_draw_tile_spritesheet(spritesheet, TILE_WIDTH*(*s), x, y);
+        x += TILE_WIDTH; *s++;
+    }
+}
+
 void gl_draw_tile_spritesheet(gltexture_t* spritesheet, unsigned tile_x, int x, int y ) {
     glEnable(GL_TEXTURE_2D);
 

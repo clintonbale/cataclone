@@ -4,7 +4,6 @@
 
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <SDL_syswm.h>
 
 #define DEFAULT_WIDTH 640
 #define DEFAULT_HEIGHT 640
