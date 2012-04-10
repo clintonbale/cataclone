@@ -13,7 +13,7 @@ typedef struct {
     int width, height;
 } gltexture_t;
 
-#define MAX_GLTEXTURES 1024
+#define MAX_GLTEXTURES 64
 gltexture_t gltextures[MAX_GLTEXTURES];
 uint16_t    numgltextures;
 GLuint      currenttexture;

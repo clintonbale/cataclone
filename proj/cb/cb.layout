@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="Debug" />
+	<ActiveTarget name="Release" />
 	<File name="..\..\src\bool.h" open="0" top="0" tabpos="11">
 		<Cursor position="112" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_data.h" open="1" top="0" tabpos="8">
+	<File name="..\..\src\catacomb\catacomb_data.h" open="0" top="0" tabpos="8">
 		<Cursor position="92" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_graphics.c" open="1" top="0" tabpos="4">
-		<Cursor position="802" topLine="54" />
+	<File name="..\..\src\catacomb\catacomb_graphics.c" open="0" top="0" tabpos="2">
+		<Cursor position="1583" topLine="22" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_graphics.h" open="0" top="0" tabpos="5">
-		<Cursor position="163" topLine="0" />
+	<File name="..\..\src\catacomb\catacomb_graphics.h" open="0" top="0" tabpos="3">
+		<Cursor position="404" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_level.c" open="1" top="0" tabpos="7">
-		<Cursor position="31" topLine="0" />
+	<File name="..\..\src\catacomb\catacomb_level.c" open="0" top="0" tabpos="3">
+		<Cursor position="2375" topLine="49" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_level.h" open="1" top="0" tabpos="6">
-		<Cursor position="1917" topLine="23" />
+	<File name="..\..\src\catacomb\catacomb_level.h" open="0" top="0" tabpos="6">
+		<Cursor position="331" topLine="0" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_scores.c" open="0" top="0" tabpos="5">
 		<Cursor position="429" topLine="0" />
@@ -25,35 +25,35 @@
 	<File name="..\..\src\catacomb\catacomb_scores.h" open="0" top="0" tabpos="11">
 		<Cursor position="420" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_sound.c" open="0" top="0" tabpos="6">
-		<Cursor position="4093" topLine="105" />
+	<File name="..\..\src\catacomb\catacomb_sound.c" open="1" top="0" tabpos="3">
+		<Cursor position="2552" topLine="6" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_sound.h" open="0" top="0" tabpos="0">
-		<Cursor position="167" topLine="0" />
+	<File name="..\..\src\catacomb\catacomb_sound.h" open="0" top="0" tabpos="5">
+		<Cursor position="623" topLine="9" />
 	</File>
-	<File name="..\..\src\common.c" open="0" top="0" tabpos="3">
+	<File name="..\..\src\common.c" open="0" top="0" tabpos="6">
 		<Cursor position="0" topLine="0" />
 	</File>
-	<File name="..\..\src\common.h" open="1" top="0" tabpos="5">
+	<File name="..\..\src\common.h" open="0" top="0" tabpos="5">
 		<Cursor position="297" topLine="0" />
 	</File>
-	<File name="..\..\src\draw.c" open="1" top="0" tabpos="2">
-		<Cursor position="165" topLine="0" />
+	<File name="..\..\src\draw.c" open="1" top="1" tabpos="2">
+		<Cursor position="4075" topLine="115" />
 	</File>
 	<File name="..\..\src\draw.h" open="0" top="0" tabpos="4">
-		<Cursor position="301" topLine="0" />
+		<Cursor position="269" topLine="0" />
 	</File>
 	<File name="..\..\src\error.h" open="0" top="0" tabpos="7">
-		<Cursor position="776" topLine="9" />
+		<Cursor position="521" topLine="11" />
 	</File>
-	<File name="..\..\src\graphics.c" open="1" top="0" tabpos="3">
-		<Cursor position="322" topLine="29" />
+	<File name="..\..\src\graphics.c" open="0" top="0" tabpos="1">
+		<Cursor position="1713" topLine="49" />
 	</File>
-	<File name="..\..\src\graphics.h" open="1" top="0" tabpos="9">
-		<Cursor position="322" topLine="0" />
+	<File name="..\..\src\graphics.h" open="0" top="0" tabpos="5">
+		<Cursor position="152" topLine="0" />
 	</File>
-	<File name="..\..\src\main.c" open="1" top="1" tabpos="1">
-		<Cursor position="1802" topLine="54" />
+	<File name="..\..\src\main.c" open="1" top="0" tabpos="1">
+		<Cursor position="2377" topLine="63" />
 	</File>
 	<File name="..\..\src\sound_manager.c" open="0" top="0" tabpos="1">
 		<Cursor position="1609" topLine="48" />

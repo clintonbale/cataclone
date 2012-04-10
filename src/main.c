@@ -12,7 +12,7 @@
 #include "catacomb/catacomb_level.h"
 
 void SDL_ShowFPS() {
-    #define ALPHA 0.2
+#define ALPHA 0.2
     static char fpsstr[16];
     static uint32_t fps_lasttime = 0, fps_ticks, fps_delta;
     static float    fps_frametime, fps_framerate;
@@ -26,7 +26,7 @@ void SDL_ShowFPS() {
 
     sprintf(&fpsstr, "FPS: %.2f", fps_framerate);
     graphics_viewport_set_title(fpsstr);
-    #undef ALPHA
+#undef ALPHA
 }
 
 int main(int argc, char* argv[])
@@ -80,6 +80,8 @@ int main(int argc, char* argv[])
                 gl_draw_tile_spritesheet(tiles, ('z'+7)*8, x*8, y*8);
             }
         }
+
+        gl_draw_string_spritesheet(tiles, "testing the string drawing function.!@#$%^&*()_-+=/;[]{}0123456789~", 0, 8*65);
 
         //draw the map!
         for(int y = 0; y < 64; y++) {
