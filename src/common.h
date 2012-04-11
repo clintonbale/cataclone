@@ -13,7 +13,7 @@ typedef uint8_t     byte;
 typedef uint16_t    ushort;
 typedef uint32_t    uint;
 typedef float       vec2f_t[2];
-typedef uint32_t    vec2_t[2];
+typedef int32_t     vec2_t[2];
 
 #ifndef NULL
 #define NULL ((void*)0)
