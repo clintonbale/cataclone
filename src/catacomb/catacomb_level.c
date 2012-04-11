@@ -56,6 +56,18 @@ static void catacomb_level_free(level_t* level) {
     }
 }
 
+//returns index that tile was found + 1
+static int catacomb_level_find_tile(vec2_t location, uint16_t start, byte tile_id) {
+    for(uint16_t i = start; i < (LEVEL_WIDTH*LEVEL_HEIGHT); ++i) {
+        if(current_level->tiles[i] == tile_id) {
+            location[0] = i % LEVEL_WIDTH; // x
+            location[1] = (int)(i / LEVEL_WIDTH); // y
+            return i + 1;
+        }
+    }
+    return -1;
+}
+
 const level_t* catacomb_level_current(void) {
     if(current_level) {
         return current_level;
@@ -102,4 +114,10 @@ void catacomb_level_change(byte num) {
     debug("Loading: %s", level_str);
     current_level = catacomb_level_load(level_str);
     current_level->level_number = num;
+}
+
+bool catacomb_level_player_start(vec2_t out_start) {
+    if(!current_level || !out_start)
+        return false;
+    return catacomb_level_find_tile(out_start, 0, 0xE6) > 0;
 }

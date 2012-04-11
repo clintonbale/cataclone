@@ -12,9 +12,17 @@ typedef struct {
     byte level_number;
 } level_t;
 
+//Main level changing functions
 void catacomb_level_change(byte level);
 void catacomb_level_next();
 
 const level_t* catacomb_level_current(void);
+//-----------------------------
+
+//Level gameplay functions
+bool catacomb_level_player_start(vec2_t out_start);
+
+
+//-----------------------------
 
 #endif // _CATACOMB_LEVEL_H
