@@ -145,8 +145,6 @@ void gl_draw_string_spritesheet(gltexture_t* spritesheet, const char* str, int x
 }
 
 void gl_draw_tile_spritesheet(gltexture_t* spritesheet, unsigned tile_x, int x, int y ) {
-    glEnable(GL_TEXTURE_2D);
-
     gl_bind(spritesheet->texnum);
     glBegin(GL_QUADS);
         glTexCoord2d(tile_x/(float)spritesheet->width, 0);              glVertex2f(x,y);
@@ -154,13 +152,9 @@ void gl_draw_tile_spritesheet(gltexture_t* spritesheet, unsigned tile_x, int x, 
         glTexCoord2d((tile_x+TILE_WIDTH)/(float)spritesheet->width,1);  glVertex2f(x+TILE_WIDTH,y+TILE_HEIGHT);
         glTexCoord2d(tile_x/(float)spritesheet->width, 1);              glVertex2f(x,y+TILE_HEIGHT);
     glEnd();
-
-    glDisable(GL_TEXTURE_2D);
 }
 
 void gl_draw_image(int x, int y, unsigned w, unsigned h, GLuint texture) {
-    glEnable(GL_TEXTURE_2D);
-
     gl_bind(texture);
     glBegin( GL_QUADS );
         glTexCoord2f(0, 0); glVertex3f(x, y, 0);
@@ -168,8 +162,6 @@ void gl_draw_image(int x, int y, unsigned w, unsigned h, GLuint texture) {
         glTexCoord2f(1, 1); glVertex3f(x+w, y+h, 0);
         glTexCoord2f(0, 1); glVertex3f(x, y+h, 0);
     glEnd();
-
-    glDisable(GL_TEXTURE_2D);
 }
 
 void gl_draw_tile(int x, int y, GLuint texture) {

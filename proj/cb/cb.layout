@@ -11,7 +11,7 @@
 		<Cursor position="404" topLine="0" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_level.c" open="1" top="0" tabpos="4">
-		<Cursor position="3035" topLine="88" />
+		<Cursor position="3035" topLine="22" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_level.h" open="0" top="0" tabpos="11">
 		<Cursor position="475" topLine="0" />
@@ -35,7 +35,7 @@
 		<Cursor position="202" topLine="0" />
 	</File>
 	<File name="..\..\src\draw.c" open="1" top="0" tabpos="2">
-		<Cursor position="4268" topLine="106" />
+		<Cursor position="3672" topLine="134" />
 	</File>
 	<File name="..\..\src\draw.h" open="1" top="0" tabpos="3">
 		<Cursor position="733" topLine="0" />
@@ -44,19 +44,19 @@
 		<Cursor position="114" topLine="0" />
 	</File>
 	<File name="..\..\src\graphics.c" open="0" top="0" tabpos="5">
-		<Cursor position="42" topLine="0" />
+		<Cursor position="2311" topLine="33" />
 	</File>
 	<File name="..\..\src\graphics.h" open="0" top="0" tabpos="9">
 		<Cursor position="152" topLine="0" />
 	</File>
-	<File name="..\..\src\main.c" open="0" top="0" tabpos="0">
-		<Cursor position="1180" topLine="40" />
+	<File name="..\..\src\main.c" open="1" top="1" tabpos="6">
+		<Cursor position="3195" topLine="60" />
 	</File>
-	<File name="..\..\src\player.c" open="1" top="1" tabpos="1">
-		<Cursor position="2072" topLine="51" />
+	<File name="..\..\src\player.c" open="1" top="0" tabpos="1">
+		<Cursor position="525" topLine="4" />
 	</File>
-	<File name="..\..\src\player.h" open="0" top="0" tabpos="0">
-		<Cursor position="81" topLine="0" />
+	<File name="..\..\src\player.h" open="1" top="0" tabpos="7">
+		<Cursor position="511" topLine="0" />
 	</File>
 	<File name="..\..\src\sound_manager.c" open="0" top="0" tabpos="1">
 		<Cursor position="1609" topLine="48" />

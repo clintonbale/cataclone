@@ -44,9 +44,10 @@ int main(int argc, char* argv[])
     SDL_Event event;
 
     gltexture_t* tiles = gl_find_gltexture("TILES");
+    player_t* player = player_new();
 
     catacomb_level_change(1);
-    player_init();
+    player_init(player);
 
     while(running) {
         while(SDL_PollEvent(&event)) {
@@ -57,7 +58,7 @@ int main(int argc, char* argv[])
                     else if(event.key.keysym.sym == SDLK_SPACE) {
                         //other stuff?
                         catacomb_level_next();
-                        player_init();
+                        player_init(player);
                     }
                     break;
                 case SDL_QUIT:
@@ -66,7 +67,7 @@ int main(int argc, char* argv[])
             }
 
             //handle other events here
-            player_event(&event);
+            player_event(player, &event);
         }
 
         //update
@@ -76,6 +77,8 @@ int main(int argc, char* argv[])
         //player_draw() etc..
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+        glEnable(GL_TEXTURE_2D);
 
         //draw the pink background
         for(int y = 0; y < graphics_viewport_height()/8; y++) {
@@ -92,6 +95,8 @@ int main(int argc, char* argv[])
                 gl_draw_tile_spritesheet(tiles, catacomb_level_current()->tiles[(y*64)+x]*8, x*8, y*8);
             }
         }
+
+        glDisable(GL_TEXTURE_2D);
 
 /*
         vec2_t ps;
@@ -110,14 +115,16 @@ int main(int argc, char* argv[])
             }
         }*/
 
-        player_update();
-        player_draw();
+        player_update(player);
+        player_draw(player);
 
         SDL_GL_SwapBuffers();
         SDL_ShowFPS();
 
         SDL_Delay(1000.0f/16.f);
     }
+
+    player_free(player);
 
     gl_draw_finish();
     graphics_finish();
