@@ -4,6 +4,7 @@
 #include "common.h"
 #include "graphics.h"
 #include "draw.h"
+#include "player.h"
 
 #include "catacomb/catacomb_sound.h"
 #include "catacomb/catacomb_scores.h"
@@ -45,6 +46,7 @@ int main(int argc, char* argv[])
     gltexture_t* tiles = gl_find_gltexture("TILES");
 
     catacomb_level_change(1);
+    player_init();
 
     while(running) {
         while(SDL_PollEvent(&event)) {
@@ -52,9 +54,11 @@ int main(int argc, char* argv[])
                 case SDL_KEYUP:
                     if(event.key.keysym.sym == SDLK_ESCAPE)
                         running = false;
-                    if(event.key.keysym.sym == SDLK_SPACE)
+                    else if(event.key.keysym.sym == SDLK_SPACE) {
+                        //other stuff?
                         catacomb_level_next();
-                    //other stuff?
+                        player_init();
+                    }
                     break;
                 case SDL_QUIT:
                     running = false;
@@ -62,7 +66,7 @@ int main(int argc, char* argv[])
             }
 
             //handle other events here
-            //player_event(&event) ... etc..
+            player_event(&event);
         }
 
         //update
@@ -89,8 +93,30 @@ int main(int argc, char* argv[])
             }
         }
 
+/*
+        vec2_t ps;
+        int p = catacomb_level_player_start(ps);
+        printf("x: %d, y: %d\n", ps[0], ps[1]);
+        gl_draw_tile_spritesheet(tiles, 190<<3, ps[0]*8, ps[1]*8);
+*/
+/*
+        int x = 0, y = 0;
+        for(int i = 0; i < 11696/8; i++) {
+            gl_draw_tile_spritesheet(tiles, i<<3, x, y);
+            x+=8;
+            if(x > 44*8) {
+                x = 0;
+                y+=8;
+            }
+        }*/
+
+        player_update();
+        player_draw();
+
         SDL_GL_SwapBuffers();
         SDL_ShowFPS();
+
+        SDL_Delay(1000.0f/16.f);
     }
 
     gl_draw_finish();
