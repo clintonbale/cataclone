@@ -17,7 +17,7 @@ typedef struct {
     ushort  todraw[4];     // the four parts of the player to draw
 } player_t;
 
-static gltexture_t* tiles;
+static gltexture_t* player_tiles;
 static player_t player;
 
 void player_init(void);

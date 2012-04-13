@@ -3,18 +3,18 @@
 #include "catacomb/catacomb_level.h"
 
 static uint16_t animations[16]={
-    256<<3, 260<<3, //up
-    264<<3, //shoot up
-    268<<3, //? weird legs
-    272<<3, 276<<3, //right
-    280<<3, //shoot right
-    284<<3, //?
-    288<<3, 292<<3, //down
-    296<<3, //shoot down
-    300<<3, //?
-    304<<3, 308<<3, //left
-    312<<3, //left shoot
-    316<<3, //?
+    0<<3, 4<<3, //up
+    8<<3, //shoot up
+    12<<3, //? weird legs
+    16<<3, 20<<3, //right
+    24<<3, //shoot right
+    28<<3, //?
+    32<<3, 36<<3, //down
+    40<<3, //shoot down
+    44<<3, //?
+    48<<3, 52<<3, //left
+    56<<3, //left shoot
+    60<<3, //?
 };
 
 void player_init(void) {
@@ -22,7 +22,7 @@ void player_init(void) {
     player.position[0] *= TILE_WIDTH;
     player.position[1] *= TILE_HEIGHT;
 
-    tiles = gl_find_gltexture("PLAYER");
+    player_tiles = gl_find_gltexture("PLAYER");
     player.last_dir = RIGHT; //all maps start facing right.
 }
 
@@ -87,8 +87,8 @@ void player_draw(void) {
             player.position[1]+(graphics_viewport_height()/2.0f) + PLAYER_HEIGHT,
             player.position[1]-(graphics_viewport_height()/2.0f) + PLAYER_HEIGHT, 0.0f, 1.0f);
 
-    gl_draw_tile_spritesheet(tiles, player.todraw[0], player.position[0],             player.position[1]);
-    gl_draw_tile_spritesheet(tiles, player.todraw[1], player.position[0] + TILE_WIDTH,player.position[1]);
-    gl_draw_tile_spritesheet(tiles, player.todraw[2], player.position[0],             player.position[1] + TILE_HEIGHT);
-    gl_draw_tile_spritesheet(tiles, player.todraw[3], player.position[0] + TILE_WIDTH,player.position[1] + TILE_HEIGHT);
+    gl_draw_tile_spritesheet(player_tiles, player.todraw[0], player.position[0],             player.position[1]);
+    gl_draw_tile_spritesheet(player_tiles, player.todraw[1], player.position[0] + TILE_WIDTH,player.position[1]);
+    gl_draw_tile_spritesheet(player_tiles, player.todraw[2], player.position[0],             player.position[1] + TILE_HEIGHT);
+    gl_draw_tile_spritesheet(player_tiles, player.todraw[3], player.position[0] + TILE_WIDTH,player.position[1] + TILE_HEIGHT);
 }
