@@ -106,7 +106,7 @@ void catacomb_graphics_init() {
 
 
     catacomb_graphics_load_tiles("PLAYER", data, length, tile_size, TRANSLATE_INDEX(2048), TRANSLATE_INDEX(2560));
-    catacomb_graphics_load_tiles("MISC",   data, length, tile_size, 0,    TRANSLATE_INDEX(2048));
+    catacomb_graphics_load_tiles("MISC",   data, length, tile_size, 0,TRANSLATE_INDEX(2048));
     //catacomb_graphics_load_tiles("TILES", data, length, tile_size, 0, EGA_DATA_LENGTH);
 }
 
