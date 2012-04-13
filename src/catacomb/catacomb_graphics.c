@@ -49,17 +49,17 @@ GLuint catacomb_graphics_load_pic(const char* ident, byte* data) {
 }
 
 
-GLuint catacomb_graphics_load_tiles(const char* ident, byte* data) {
+GLuint catacomb_graphics_load_tiles(const char* ident, const byte* data, const uint length, const uint tile_size, const uint start_index, const uint end_index) {
     SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, NUM_EGA_TILES*TILE_WIDTH, TILE_HEIGHT,32,0,0,0,0);
     if(!pic) { error("CreateRGBSurface failed: %s", SDL_GetError()); }
 
-    for(uint i = 0; i < EGA_DATA_LENGTH; i += EGA_TILE_SIZE) {
+    for(uint i = start_index; i < end_index; i += tile_size) {
         for(byte y = 0; y < 8; ++y) {
             for(byte x = 0; x < 8; ++x) {
-                byte n = EGA_DATA[i+y+24]>>(7-x)&1; //intensity
-                byte b = EGA_DATA[i+y+16]>>(7-x)&1; //blue
-                byte g = EGA_DATA[i+y+8 ]>>(7-x)&1; //green
-                byte r = EGA_DATA[i+y   ]>>(7-x)&1; //red
+                byte n = data[i+y+24]>>(7-x)&1; //intensity
+                byte b = data[i+y+16]>>(7-x)&1; //blue
+                byte g = data[i+y+8 ]>>(7-x)&1; //green
+                byte r = data[i+y   ]>>(7-x)&1; //red
 
                 //get the color
                 uint color = (r<<16)|(g<<8)|(b);
@@ -80,20 +80,34 @@ GLuint catacomb_graphics_load_tiles(const char* ident, byte* data) {
     return texture;
 }
 
+#define TRANSLATE_INDEX(x) ((x)*4)
 void catacomb_graphics_init() {
     catacomb_graphics_load_pic("TITLE", &TITLE_PIC);
     catacomb_graphics_load_pic("END", &END_PIC);
 
+    byte* data = NULL;
+    uint length = 0;
+    uint tile_size = 0;
+
     graphics_mode_t mode = graphics_get_mode();
     if(mode == GFX_MODE_EGA) {
-        catacomb_graphics_load_tiles("TILES", &EGA_DATA);
+        data = &EGA_DATA;
+        length = EGA_DATA_LENGTH;
+        tile_size = EGA_TILE_SIZE;
     }
     else if(mode == GFX_MODE_CGA) {
-        catacomb_graphics_load_tiles("TILES", &CGA_DATA);
+        data = &CGA_DATA;
+        length = CGA_DATA_LENGTH;
+        tile_size = CGA_TILE_SIZE;
     }
     else {
         error("Invalid graphics mode: %d", mode);
     }
+
+
+    catacomb_graphics_load_tiles("PLAYER", data, length, tile_size, TRANSLATE_INDEX(2048), TRANSLATE_INDEX(2560));
+    catacomb_graphics_load_tiles("MISC",   data, length, tile_size, 0,    TRANSLATE_INDEX(2048));
+    //catacomb_graphics_load_tiles("TILES", data, length, tile_size, 0, EGA_DATA_LENGTH);
 }
 
 void catacomb_graphics_finish() {

@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "catacomb_level.h"
+#include "../draw.h"
 
 static level_t* current_level;
 
@@ -88,6 +89,21 @@ void catacomb_level_next() {
         return catacomb_level_change(nextlevel);
     }
     return catacomb_level_change(nextlevel);
+}
+
+void catacomb_level_render() {
+    static gltexture_t* tile_textures = NULL;
+    if(!tile_textures) tile_textures = gl_find_gltexture("MISC");
+
+    //draw the map!
+    for(int y = -32; y < 96; ++y) {
+        for(int x = -32; x < 96; ++x) {
+            if(x > 0 && x < 64 && y > 0 && y < 64)
+                gl_draw_tile_spritesheet(tile_textures, catacomb_level_current()->tiles[(y*64)+x]*8, x*8, y*8);
+            else
+                gl_draw_tile_spritesheet(tile_textures, ('z'+7)*8, x*8, y*8);
+        }
+    }
 }
 
 void catacomb_level_change(byte num) {

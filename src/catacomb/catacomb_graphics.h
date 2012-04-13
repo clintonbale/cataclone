@@ -11,6 +11,7 @@ void catacomb_graphics_init();
 void catacomb_graphics_finish();
 
 GLuint catacomb_graphics_load_pic(const char* ident, byte* data);
-GLuint catacomb_graphics_load_tiles(const char* ident, byte* data);
+//GLuint catacomb_graphics_load_tiles(const char* ident, byte* data);
+GLuint catacomb_graphics_load_tiles(const char* ident, const byte* data, const uint length, const uint tile_size, const uint start_index, const uint end_index);
 
 #endif // _CATACOMB_GRAPHICS_H_
