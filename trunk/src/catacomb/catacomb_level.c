@@ -122,7 +122,7 @@ void catacomb_level_change(byte num) {
         catacomb_level_free(current_level);
     }
 
-    itoa(num, &level_num, 10);
+    sprintf(level_num, "%d", num);
     level_str[5] = 0;
     strcat(level_str, level_num);
     strcat(level_str, ".CAT");

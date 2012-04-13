@@ -145,6 +145,12 @@ void gl_draw_string_spritesheet(gltexture_t* spritesheet, const char* str, int x
 }
 
 void gl_draw_tile_spritesheet(gltexture_t* spritesheet, unsigned tile_x, int x, int y ) {
+    #ifdef _DEBUG // just to check and make sure we have our animiations right, only temporary
+        if(tile_x > spritesheet->width) {
+            warn("tile_x is greater than width. %d > %d", tile_x, spritesheet->width);
+        }
+    #endif
+
     gl_bind(spritesheet->texnum);
     glBegin(GL_QUADS);
         glTexCoord2d(tile_x/(float)spritesheet->width, 0);              glVertex2f(x,y);
