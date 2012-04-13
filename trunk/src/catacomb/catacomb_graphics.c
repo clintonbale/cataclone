@@ -108,9 +108,35 @@ void catacomb_graphics_init() {
         error("Invalid graphics mode: %d", mode);
     }
 
+/*
+    Tiles:
+    000-256  : Main Map Tiles
+    256-320  : Player
+    320-384  : Red Imp (2 tiles wide)
+    384-448  : White Imp
+    448-492  : Bolt
+    492-512  : End Level/ Teleport Gate
+    512-656  : Big Red Imp (3 tiles wide)
+    656-684  : Unknown? Fireball?
+    684-939  : Big Purple Imp (4 tiles wide)
+    939-987  : Unknown? Another fireball?
+    987-1387 : Last boss
+    1387-1487: Unknown? Another fireball? Unsure of size? could be 4 tiles @ 1387+100 or 3 tiles at 1387+75
+*/
+
+    catacomb_graphics_load_tiles("MAIN",   data, tile_size, 0  , 256);
     catacomb_graphics_load_tiles("PLAYER", data, tile_size, 256, 320);
-    catacomb_graphics_load_tiles("MISC",   data, tile_size, 0  , 256);
-    catacomb_graphics_load_tiles("TILES",  data, tile_size, 0  , NUM_EGA_TILES);
+    catacomb_graphics_load_tiles("REDIMP", data, tile_size, 320, 384);
+    catacomb_graphics_load_tiles("WHITEIMP", data, tile_size, 384, 448);
+    catacomb_graphics_load_tiles("BOLT", data, tile_size, 448, 492);
+    catacomb_graphics_load_tiles("TELE", data, tile_size, 492, 512);
+    catacomb_graphics_load_tiles("BIGREDIMP", data, tile_size, 512, 656);
+    catacomb_graphics_load_tiles("BIGREDIMP_FIREBALL", data, tile_size, 656, 684);
+    catacomb_graphics_load_tiles("BIGPURPIMP", data, tile_size, 684, 939);
+    catacomb_graphics_load_tiles("BIGPURPIMP_FIREBALL", data, tile_size, 939, 987);
+    catacomb_graphics_load_tiles("LASTBOSS", data, tile_size, 987, 1387);
+    catacomb_graphics_load_tiles("LASTBOSS_FIREBALL", data, tile_size, 1387, 1462);
+    catacomb_graphics_load_tiles("ALLTILES",  data, tile_size, 0  , NUM_EGA_TILES);
 }
 
 void catacomb_graphics_finish() {

@@ -93,7 +93,7 @@ void catacomb_level_next() {
 
 void catacomb_level_render() {
     static gltexture_t* tile_textures = NULL;
-    if(!tile_textures) tile_textures = gl_find_gltexture("MISC");
+    if(!tile_textures) tile_textures = gl_find_gltexture("MAIN");
 
     //draw the map!
     for(int y = -32; y < 96; ++y) {
