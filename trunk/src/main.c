@@ -11,6 +11,11 @@
 #include "catacomb/catacomb_graphics.h"
 #include "catacomb/catacomb_level.h"
 
+void check_collision() {
+   // level_t* l = catacomb_level_current();
+
+}
+
 void SDL_ShowFPS() {
 #define ALPHA 0.2
     static char fpsstr[16];
@@ -43,11 +48,10 @@ int main(int argc, char* argv[])
     bool running = true;
     SDL_Event event;
 
-    gltexture_t* tiles = gl_find_gltexture("TILES");
-    player_t* player = player_new();
-
     catacomb_level_change(1);
-    player_init(player);
+    player_init();
+
+    gltexture_t* tiles = gl_find_gltexture("MISC");
 
     while(running) {
         while(SDL_PollEvent(&event)) {
@@ -58,7 +62,7 @@ int main(int argc, char* argv[])
                     else if(event.key.keysym.sym == SDLK_SPACE) {
                         //other stuff?
                         catacomb_level_next();
-                        player_init(player);
+                        player_init();
                     }
                     break;
                 case SDL_QUIT:
@@ -67,8 +71,10 @@ int main(int argc, char* argv[])
             }
 
             //handle other events here
-            player_event(player, &event);
+            player_event(&event);
         }
+
+        player_update();
 
         //update
         //player_update() etc..
@@ -77,54 +83,34 @@ int main(int argc, char* argv[])
         //player_draw() etc..
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
         glEnable(GL_TEXTURE_2D);
 
-        //draw the pink background
-        for(int y = 0; y < graphics_viewport_height()/8; y++) {
-            for(int x = 0; x < graphics_viewport_width()/8; x++) {
-                gl_draw_tile_spritesheet(tiles, ('z'+7)*8, x*8, y*8);
-            }
-        }
+        catacomb_level_render();
 
-        gl_draw_string_spritesheet(tiles, "testing the string drawing function.!@#$%^&*()_-+=/;[]{}0123456789~", 0, 8*65);
+        player_draw();
 
-        //draw the map!
-        for(int y = 0; y < 64; y++) {
-            for(int x = 0; x < 64; x++) {
-                gl_draw_tile_spritesheet(tiles, catacomb_level_current()->tiles[(y*64)+x]*8, x*8, y*8);
-            }
-        }
 
-        glDisable(GL_TEXTURE_2D);
 
 /*
         vec2_t ps;
         int p = catacomb_level_player_start(ps);
         printf("x: %d, y: %d\n", ps[0], ps[1]);
         gl_draw_tile_spritesheet(tiles, 190<<3, ps[0]*8, ps[1]*8);
+
 */
-/*
         int x = 0, y = 0;
         for(int i = 0; i < 11696/8; i++) {
             gl_draw_tile_spritesheet(tiles, i<<3, x, y);
             x+=8;
-            if(x > 44*8) {
-                x = 0;
-                y+=8;
-            }
-        }*/
+        }
 
-        player_update(player);
-        player_draw(player);
+
+glDisable(GL_TEXTURE_2D);
 
         SDL_GL_SwapBuffers();
-        SDL_ShowFPS();
 
-        SDL_Delay(1000.0f/16.f);
+        //SDL_ShowFPS();
     }
-
-    player_free(player);
 
     gl_draw_finish();
     graphics_finish();
