@@ -66,7 +66,7 @@ void player_update() {
         player.position[1] += (direction == UP)   ? -TILE_HEIGHT : (direction == DOWN)  ? TILE_HEIGHT : 0;
 
 
-        sprintf(ss, "%d", player.position[0]);
+        sprintf(ss, "%d", player.position[0]/8);
         graphics_viewport_set_title(ss);
     }
 

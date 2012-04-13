@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     catacomb_level_change(1);
     player_init();
 
-    //gltexture_t* tiles = gl_find_gltexture("TILES");
+    gltexture_t* tiles = gl_find_gltexture("ALLTILES");
 
     while(running) {
         while(SDL_PollEvent(&event)) {
@@ -97,13 +97,13 @@ int main(int argc, char* argv[])
         printf("x: %d, y: %d\n", ps[0], ps[1]);
         gl_draw_tile_spritesheet(tiles, 190<<3, ps[0]*8, ps[1]*8);
 
-
+*/
         int x = 0, y = 0;
         for(int i = 0; i < 11696/8; i++) {
             gl_draw_tile_spritesheet(tiles, i<<3, x, y);
             x+=8;
         }
-*/
+
 
         glDisable(GL_TEXTURE_2D);
 
