@@ -4,13 +4,13 @@
 	<File name="..\..\src\catacomb\catacomb_data.h" open="1" top="0" tabpos="2">
 		<Cursor position="210" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_graphics.c" open="1" top="0" tabpos="1">
-		<Cursor position="3794" topLine="83" />
+	<File name="..\..\src\catacomb\catacomb_graphics.c" open="1" top="1" tabpos="1">
+		<Cursor position="1703" topLine="83" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_graphics.h" open="1" top="0" tabpos="3">
 		<Cursor position="298" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_level.c" open="1" top="0" tabpos="9">
+	<File name="..\..\src\catacomb\catacomb_level.c" open="1" top="0" tabpos="8">
 		<Cursor position="3503" topLine="99" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_level.h" open="0" top="0" tabpos="11">
@@ -22,7 +22,7 @@
 	<File name="..\..\src\catacomb\catacomb_scores.h" open="0" top="0" tabpos="11">
 		<Cursor position="420" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_sound.c" open="1" top="0" tabpos="11">
+	<File name="..\..\src\catacomb\catacomb_sound.c" open="1" top="0" tabpos="10">
 		<Cursor position="2358" topLine="65" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_sound.h" open="0" top="0" tabpos="5">
@@ -34,23 +34,23 @@
 	<File name="..\..\src\common.h" open="0" top="0" tabpos="2">
 		<Cursor position="476" topLine="0" />
 	</File>
-	<File name="..\..\src\draw.c" open="1" top="0" tabpos="8">
-		<Cursor position="4382" topLine="119" />
+	<File name="..\..\src\draw.c" open="1" top="0" tabpos="7">
+		<Cursor position="4368" topLine="140" />
 	</File>
-	<File name="..\..\src\draw.h" open="1" top="0" tabpos="7">
+	<File name="..\..\src\draw.h" open="1" top="0" tabpos="6">
 		<Cursor position="462" topLine="0" />
 	</File>
-	<File name="..\..\src\error.h" open="1" top="0" tabpos="10">
+	<File name="..\..\src\error.h" open="1" top="0" tabpos="9">
 		<Cursor position="521" topLine="11" />
 	</File>
-	<File name="..\..\src\graphics.c" open="1" top="0" tabpos="6">
-		<Cursor position="1112" topLine="6" />
+	<File name="..\..\src\graphics.c" open="1" top="0" tabpos="12">
+		<Cursor position="421" topLine="63" />
 	</File>
 	<File name="..\..\src\graphics.h" open="0" top="0" tabpos="9">
 		<Cursor position="152" topLine="0" />
 	</File>
-	<File name="..\..\src\main.c" open="1" top="1" tabpos="12">
-		<Cursor position="1270" topLine="33" />
+	<File name="..\..\src\main.c" open="1" top="0" tabpos="11">
+		<Cursor position="1798" topLine="87" />
 	</File>
 	<File name="..\..\src\player.c" open="1" top="0" tabpos="4">
 		<Cursor position="552" topLine="38" />
