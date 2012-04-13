@@ -51,15 +51,15 @@ GLuint catacomb_graphics_load_pic(const char* ident, byte* data) {
 /*  ident:        the name of the texture
     data:         the pointer to the raw tile data
     tile_size:    is amount of bytes one tile takes
-    start_index:  is the start index in pixels
-    end_index:    is the last index in pixels       */
+    start_index:  is the first tile index
+    end_index:    is the last tile index  */
 GLuint catacomb_graphics_load_tiles(const char* ident, const byte* data, uint tile_size, uint start_index, uint end_index) {
-    SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, (end_index-start_index), TILE_HEIGHT,32,0,0,0,0);
+    SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, (end_index-start_index)*8, TILE_HEIGHT,32,0,0,0,0);
     if(!pic) { error("CreateRGBSurface failed: %s", SDL_GetError()); }
 
-    //translate the number pixels into bytes
-    start_index *= tile_size/TILE_WIDTH;
-    end_index   *= tile_size/TILE_WIDTH;
+    //translate the tile index to bytes.
+    start_index *= tile_size;
+    end_index   *= tile_size;
 
     for(uint i = start_index; i < end_index; i += tile_size) {
         for(byte y = 0; y < TILE_HEIGHT; ++y) {
@@ -108,9 +108,9 @@ void catacomb_graphics_init() {
         error("Invalid graphics mode: %d", mode);
     }
 
-    catacomb_graphics_load_tiles("PLAYER", data, tile_size, 2048, 2560);
-    catacomb_graphics_load_tiles("MISC",   data, tile_size, 0   , 2048);
-    catacomb_graphics_load_tiles("TILES",  data, tile_size, 0   , (EGA_DATA_LENGTH/EGA_TILE_SIZE)*TILE_WIDTH);
+    catacomb_graphics_load_tiles("PLAYER", data, tile_size, 256, 320);
+    catacomb_graphics_load_tiles("MISC",   data, tile_size, 0  , 256);
+    catacomb_graphics_load_tiles("TILES",  data, tile_size, 0  , NUM_EGA_TILES);
 }
 
 void catacomb_graphics_finish() {
