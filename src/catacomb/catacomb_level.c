@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "catacomb_tiles.h"
 #include "catacomb_level.h"
 #include "../draw.h"
 
@@ -19,6 +20,10 @@ static level_t* catacomb_level_load(const char* file) {
     if(!level) {
         error("Out of memory!");
     }
+
+    level->tele_anim = 0;
+    level->num_teles = 0;
+    memset(&level->tele_locations, 0, sizeof(level->tele_locations));
 
     //TODO: Add support for big endian computers.
     uint32_t desired_size;
@@ -40,11 +45,17 @@ static level_t* catacomb_level_load(const char* file) {
         //loop for the count, set the tiles
         for(i = 0; i < count; ++i) {
             level->tiles[tile_index++] = next ? next : fgetc(fp);
+
+            //If it is a tele, add it to the tele list.
+            if(level->tiles[tile_index-1] == TILE_TYPE_TELE) {
+                level->tele_locations[level->num_teles++] = tile_index-1;
+            }
         }
     }
     if(ferror(fp)) {
         error("Error reading level: %s", file);
     }
+
     debug("Loaded level: %s", file);
 
     return level;
@@ -55,6 +66,11 @@ static void catacomb_level_free(level_t* level) {
         free(level);
         level = (level_t*)0;
     }
+}
+
+void catacomb_level_init(void) {
+    level_textures = gl_find_gltexture("MAIN");
+    tele_texture = gl_find_gltexture("TELE");
 }
 
 //returns index that tile was found + 1
@@ -92,18 +108,30 @@ void catacomb_level_next() {
 }
 
 void catacomb_level_render(void) {
-    static gltexture_t* tile_textures = NULL;
-    if(!tile_textures) tile_textures = gl_find_gltexture("MAIN");
-
     //draw the map!
     for(int y = -32; y < 96; ++y) {
         for(int x = -32; x < 96; ++x) {
-            if(x > 0 && x < 64 && y > 0 && y < 64)
-                gl_draw_tile_spritesheet(tile_textures, catacomb_level_current()->tiles[(y*64)+x]*8, x*8, y*8);
+            if(x > 0 && x < LEVEL_WIDTH && y > 0 && y < LEVEL_HEIGHT)
+                gl_draw_tile_spritesheet(level_textures, current_level->tiles[(y*LEVEL_HEIGHT)+x]<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
             else
-                gl_draw_tile_spritesheet(tile_textures, ('z'+7)*8, x*8, y*8);
+                gl_draw_tile_spritesheet(level_textures, TILE_PINK_BACKGROUND, x*TILE_WIDTH, y*TILE_HEIGHT);
         }
     }
+
+    //draw and animate each tile on the map
+    for(byte i = 0; i < current_level->num_teles; ++i) {
+        uint x = (current_level->tele_locations[i] % LEVEL_WIDTH)<<3;
+        uint y = (current_level->tele_locations[i] / LEVEL_WIDTH)<<3;
+
+
+        gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+0,  x,  y);
+        gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+8,  x+8,y);
+        gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+16, x,  y+8);
+        gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+24, x+8,y+8);
+    }
+
+    //increase the animation counter
+    current_level->tele_anim = (current_level->tele_anim + 1) % MAX_TELE_ANIMATIONS;
 }
 
 void catacomb_level_change(byte num) {
@@ -135,5 +163,5 @@ void catacomb_level_change(byte num) {
 bool catacomb_level_player_start(vec2_t out_start) {
     if(!current_level || !out_start)
         return false;
-    return catacomb_level_find_tile(out_start, 0, 0xE6) > 0;
+    return catacomb_level_find_tile(out_start, 0, TILE_TYPE_SPAWN) > 0;
 }

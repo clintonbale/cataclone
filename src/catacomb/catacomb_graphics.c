@@ -44,7 +44,7 @@ GLuint catacomb_graphics_load_pic(const char* ident, byte* data) {
     GLuint texture = gl_load_texture(ident, PIC_WIDTH, PIC_HEIGHT, pic->pixels);
     SDL_FreeSurface(pic);
 
-    debug("Loaded %s.PIC... w: %d, h: %d", ident, pic->w, pic->h);
+    debug("PIC %s.PIC loaded... w: %d, h: %d", ident, pic->w, pic->h);
     return texture;
 }
 
@@ -83,7 +83,7 @@ GLuint catacomb_graphics_load_tiles(const char* ident, const byte* data, uint ti
     GLuint texture = gl_load_texture(ident, pic->w, pic->h, pic->pixels);
     SDL_FreeSurface(pic);
 
-    debug("Loaded %s... w: %d, h: %d", ident, pic->w, pic->h);
+    debug("Texture %s loaded... w: %d, h: %d", ident, pic->w, pic->h);
 
     return texture;
 }

@@ -63,6 +63,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\src\catacomb\catacomb_sound.h" />
+		<Unit filename="..\..\src\catacomb\catacomb_tiles.h" />
 		<Unit filename="..\..\src\common.c">
 			<Option compilerVar="CC" />
 		</Unit>

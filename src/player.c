@@ -50,6 +50,30 @@ void player_event(SDL_Event* event) {
     }
 }
 
+//Gets colliding tiles,
+void player_colliding_tiles(byte collisions[4]) {
+    const byte* level_tiles = &catacomb_level_current()->tiles;
+    const int x = player.position[0]/TILE_WIDTH;
+    const int y = player.position[1]/TILE_HEIGHT;
+
+    collisions[0] = level_tiles[(y*LEVEL_HEIGHT)+x];      //top left
+    collisions[1] = level_tiles[((y+1)*LEVEL_WIDTH)+x];  //bottom left
+    collisions[2] = level_tiles[(y*LEVEL_HEIGHT)+x+1];    //top right
+    collisions[3] = level_tiles[((y+1)*LEVEL_WIDTH)+x+1];//bottom right
+}
+
+bool player_check_collision(void) {
+    static byte collisions[4];
+    player_colliding_tiles(collisions);
+
+    for(byte i = 0; i < sizeof(collisions); ++i) {
+        if(collisions[i] > 128 && collisions[i] < 153)
+            return true;
+    }
+
+    return false;
+}
+
 void player_update() {
     //default to last direction
     dir_t direction = player.last_dir;
@@ -60,12 +84,18 @@ void player_update() {
         if(player.directions[i]) { direction = i; move = true; break; }
     }
     if(move) {
+        int ox = player.position[0], oy = player.position[1];
+
         //animate the move
         player.curanim = player.curanim ? 0 : 1;
         //move
         player.position[0] += (direction == LEFT) ? -TILE_WIDTH  : (direction == RIGHT) ? TILE_WIDTH  : 0;
         player.position[1] += (direction == UP)   ? -TILE_HEIGHT : (direction == DOWN)  ? TILE_HEIGHT : 0;
-
+        if(player_check_collision()) {
+            player.position[0] = ox;
+            player.position[1] = oy;
+            catacomb_sounds_play("blocked");
+        }
 
         sprintf(ss, "%d", player.position[0]/8);
         graphics_viewport_set_title(ss);
