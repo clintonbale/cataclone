@@ -2,6 +2,7 @@
 #include "common.h"
 #include "graphics.h"
 #include "catacomb/catacomb_level.h"
+#include "catacomb/catacomb_sound.h"
 
 static uint16_t animations[16]={
     0<<3, 4<<3, //up
@@ -19,9 +20,8 @@ static uint16_t animations[16]={
 };
 
 void player_init(void) {
-    catacomb_level_player_start(player.position);
-    player.position[0] *= TILE_WIDTH;
-    player.position[1] *= TILE_HEIGHT;
+    player.position[0] = catacomb_level_current()->spawn[0] * TILE_WIDTH;
+    player.position[1] = catacomb_level_current()->spawn[1] * TILE_HEIGHT;
 
     player_tiles = gl_find_gltexture("PLAYER");
     player.last_dir = RIGHT; //all maps start facing right.
@@ -52,7 +52,7 @@ void player_event(SDL_Event* event) {
 
 //Gets colliding tiles,
 void player_colliding_tiles(byte collisions[4]) {
-    const byte* level_tiles = &catacomb_level_current()->tiles;
+    const byte* level_tiles = (const byte*)&catacomb_level_current()->tiles;
     const int x = player.position[0]/TILE_WIDTH;
     const int y = player.position[1]/TILE_HEIGHT;
 
@@ -74,16 +74,21 @@ bool player_check_collision(void) {
     return false;
 }
 
-void player_update() {
+void player_update(float frame_time) {
+    static float elapsed = 0;
+    elapsed += frame_time;
+
     //default to last direction
     dir_t direction = player.last_dir;
-    static char ss[8];
     bool move = false;
     for(byte i = 0; i < 4; ++i) {
         //Get the first direction key pressed and set it
         if(player.directions[i]) { direction = i; move = true; break; }
     }
-    if(move) {
+    //only move if time sinse last move is > 0.05;
+    if(move && elapsed > 0.05f) {
+        elapsed = 0;
+
         int ox = player.position[0], oy = player.position[1];
 
         //animate the move
@@ -92,11 +97,12 @@ void player_update() {
         player.position[0] += (direction == LEFT) ? -TILE_WIDTH  : (direction == RIGHT) ? TILE_WIDTH  : 0;
         player.position[1] += (direction == UP)   ? -TILE_HEIGHT : (direction == DOWN)  ? TILE_HEIGHT : 0;
         if(player_check_collision()) {
-            player.position[0] = ox;
-            player.position[1] = oy;
-            catacomb_sounds_play("blocked");
+            //player.position[0] = ox;
+            //player.position[1] = oy;
+            //catacomb_sounds_play("blocked");
         }
 
+        static char ss[8];
         sprintf(ss, "%d", player.position[0]/8);
         graphics_viewport_set_title(ss);
     }

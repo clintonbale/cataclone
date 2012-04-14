@@ -9,6 +9,11 @@
 #define NUMBER_OF_LEVELS 10
 
 #define MAX_TELES 16
+#define MAX_MONSTERS 64
+
+//only used if there is no spawn location on the map
+#define DEFAULT_SPAWN_X 2
+#define DEFAULT_SPAWN_Y 2
 
 typedef struct {
     byte tiles[LEVEL_WIDTH*LEVEL_HEIGHT];
@@ -18,6 +23,15 @@ typedef struct {
     byte num_teles;
     byte tele_anim;
     ushort tele_locations[MAX_TELES];
+
+    byte num_monsters;
+    //xxxxyyyy yyyyyyyy
+    //xxxx is monster type
+    //y... is spawn location
+    ushort monster_spawns[MAX_MONSTERS];
+
+    //player stuff
+    vec2_t spawn;
 } level_t;
 
 gltexture_t* level_textures;
@@ -25,17 +39,12 @@ gltexture_t* tele_texture;
 
 void catacomb_level_init();
 
-//Main level changing functions
 void catacomb_level_change(byte level);
 void catacomb_level_next();
 
 const level_t* catacomb_level_current(void);
-//-----------------------------
 
-//Level gameplay functions
-bool catacomb_level_player_start(vec2_t out_start);
+void catacomb_level_update(float game_time);
 void catacomb_level_render(void);
-
-//-----------------------------
 
 #endif // _CATACOMB_LEVEL_H

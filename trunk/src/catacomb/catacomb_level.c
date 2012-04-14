@@ -21,9 +21,10 @@ static level_t* catacomb_level_load(const char* file) {
         error("Out of memory!");
     }
 
-    level->tele_anim = 0;
-    level->num_teles = 0;
-    memset(&level->tele_locations, 0, sizeof(level->tele_locations));
+    //zero out the level
+    memset(level, 0, sizeof(level_t));
+    level->spawn[0] = DEFAULT_SPAWN_X;
+    level->spawn[1] = DEFAULT_SPAWN_Y;
 
     //TODO: Add support for big endian computers.
     uint32_t desired_size;
@@ -32,6 +33,7 @@ static level_t* catacomb_level_load(const char* file) {
         error("Incorrect level size, or bad header.");
     }
 
+    byte last_tile = 0;
     uint16_t tile_index = 0;
     uint16_t i;
 
@@ -44,20 +46,43 @@ static level_t* catacomb_level_load(const char* file) {
         byte next = (count==val+3) ? fgetc(fp) : 0;
         //loop for the count, set the tiles
         for(i = 0; i < count; ++i) {
-            level->tiles[tile_index++] = next ? next : fgetc(fp);
+            level->tiles[tile_index] = next ? next : fgetc(fp);
 
-            //If it is a tele, add it to the tele list.
-            if(level->tiles[tile_index-1] == TILE_TYPE_TELE) {
-                level->tele_locations[level->num_teles++] = tile_index-1;
+            last_tile = level->tiles[tile_index];
+            if(last_tile >= TILE_TYPE_A && last_tile <= TILE_TYPE_K) {
+                switch(last_tile) {
+                    case TILE_TYPE_TELE:
+                        //If it is a tele, add it to the tele list.
+                        level->tele_locations[level->num_teles++] = tile_index;
+                        break;
+                    case TILE_TYPE_SPAWN:
+                        level->spawn[0] = (tile_index) % LEVEL_WIDTH;
+                        level->spawn[1] = (tile_index) / LEVEL_HEIGHT;
+                        break;
+                    case TILE_TYPE_WHITEIMP:
+                    case TILE_TYPE_BIGREDIMP:
+                    case TILE_TYPE_BIGPURPIMP:
+                    case TILE_TYPE_REDIMP:
+                    case TILE_TYPE_LASTBOSS:
+                        level->monster_spawns[level->num_monsters] = tile_index;
+                        level->monster_spawns[level->num_monsters++] |= (last_tile-TILE_TYPE_A)<<12;
+                        break;
+                    default:
+                        warn("Unhandled default tile: '%c'", 'A'+(last_tile-TILE_TYPE_A));
+                        break;
+                }
+                //replace all A-K tiles with a floor tile.
+                level->tiles[tile_index] = TILE_TYPE_FLOOR;
             }
+            ++tile_index;
         }
     }
+
     if(ferror(fp)) {
         error("Error reading level: %s", file);
     }
 
     debug("Loaded level: %s", file);
-
     return level;
 }
 
@@ -78,7 +103,7 @@ static int catacomb_level_find_tile(vec2_t location, uint16_t start, byte tile_i
     for(uint16_t i = start; i < (LEVEL_WIDTH*LEVEL_HEIGHT); ++i) {
         if(current_level->tiles[i] == tile_id) {
             location[0] = i % LEVEL_WIDTH; // x
-            location[1] = (int)(i / LEVEL_WIDTH); // y
+            location[1] = (int)(i / LEVEL_HEIGHT); // y
             return i + 1;
         }
     }
@@ -107,7 +132,19 @@ void catacomb_level_next() {
     return catacomb_level_change(nextlevel);
 }
 
-void catacomb_level_render(void) {
+void catacomb_level_update(float game_time) {
+    static float elapsed = 0;
+    elapsed += game_time;
+
+    //only update frame every 0.10 seconds
+    if(elapsed > 0.10f) {
+        //increase the animation counter
+        current_level->tele_anim = (current_level->tele_anim + 1) % TELE_MAX_ANIMATIONS;
+        elapsed = 0;
+    }
+}
+
+void catacomb_level_render() {
     //draw the map!
     for(int y = -32; y < 96; ++y) {
         for(int x = -32; x < 96; ++x) {
@@ -129,9 +166,6 @@ void catacomb_level_render(void) {
         gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+16, x,  y+8);
         gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+24, x+8,y+8);
     }
-
-    //increase the animation counter
-    current_level->tele_anim = (current_level->tele_anim + 1) % MAX_TELE_ANIMATIONS;
 }
 
 void catacomb_level_change(byte num) {
@@ -158,10 +192,4 @@ void catacomb_level_change(byte num) {
     debug("Loading: %s", level_str);
     current_level = catacomb_level_load(level_str);
     current_level->level_number = num;
-}
-
-bool catacomb_level_player_start(vec2_t out_start) {
-    if(!current_level || !out_start)
-        return false;
-    return catacomb_level_find_tile(out_start, 0, TILE_TYPE_SPAWN) > 0;
 }

@@ -23,7 +23,7 @@ player_t player;
 void player_init(void);
 
 void player_event(SDL_Event* event);
-void player_update();
+void player_update(float frame_time);
 void player_draw(void);
 
 void player_colliding_tiles(byte collisions[4]);
