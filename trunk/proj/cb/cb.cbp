@@ -71,7 +71,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\src\draw.h" />
-		<Unit filename="..\..\src\error.h" />
 		<Unit filename="..\..\src\graphics.c">
 			<Option compilerVar="CC" />
 		</Unit>

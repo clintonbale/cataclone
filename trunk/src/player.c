@@ -1,5 +1,6 @@
 #include "player.h"
 #include "common.h"
+#include "graphics.h"
 #include "catacomb/catacomb_level.h"
 
 static uint16_t animations[16]={

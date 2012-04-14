@@ -1,6 +1,5 @@
 #include "catacomb_sound.h"
 #include "..\sound_manager.h"
-#include "..\error.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -79,10 +78,13 @@ int catacomb_sounds_find(const char* sound_name) {
 void catacomb_sounds_load(const char* file_name) {
     FILE* fp = NULL;
     byte raw_sound_data[MAX_SOUND_SIZE];
-    cat_sound_header header = {0};
-    cat_sound_def defs[MAX_SOUND_DEFS] = {0};
-    uint_least16_t i, sound_size;
-    unsigned int loaded_size = 0;
+    cat_sound_header header;
+    cat_sound_def defs[MAX_SOUND_DEFS];
+    ushort i, sound_size;
+    uint loaded_size = 0;
+
+    memset(&header, 0, sizeof(cat_sound_header));
+    memset(&defs, 0, sizeof(cat_sound_def)*MAX_SOUND_DEFS);
 
     if(!file_name)
         error("catacomb_load_sound: NULL file_name");

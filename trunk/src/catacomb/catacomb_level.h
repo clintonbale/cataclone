@@ -21,7 +21,7 @@ const level_t* catacomb_level_current(void);
 
 //Level gameplay functions
 bool catacomb_level_player_start(vec2_t out_start);
-
+void catacomb_level_render(void);
 
 //-----------------------------
 

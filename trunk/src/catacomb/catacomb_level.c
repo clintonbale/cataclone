@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "catacomb_level.h"
@@ -91,7 +91,7 @@ void catacomb_level_next() {
     return catacomb_level_change(nextlevel);
 }
 
-void catacomb_level_render() {
+void catacomb_level_render(void) {
     static gltexture_t* tile_textures = NULL;
     if(!tile_textures) tile_textures = gl_find_gltexture("MAIN");
 

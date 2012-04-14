@@ -1,5 +1,4 @@
 #include "sound_manager.h"
-#include "error.h"
 #include "catacomb/catacomb_sound.h"
 
 #include <SDL.h>
