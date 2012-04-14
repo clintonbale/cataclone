@@ -5,6 +5,7 @@
 #include "graphics.h"
 #include "draw.h"
 #include "player.h"
+#include "sound_manager.h"
 
 #include "catacomb/catacomb_sound.h"
 #include "catacomb/catacomb_scores.h"
@@ -54,7 +55,15 @@ int main(int argc, char* argv[])
     player_init();
 
     gltexture_t* tiles = gl_find_gltexture("ALLTILES");
+
+    uint current_time = SDL_GetTicks();
+    uint previous_time;
+    float frame_time;
     while(running) {
+        previous_time = current_time;
+        current_time = SDL_GetTicks();
+        frame_time = ((float)current_time - previous_time)/1000.f;
+
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_KEYUP:
@@ -75,7 +84,8 @@ int main(int argc, char* argv[])
             player_event(&event);
         }
 
-        player_update();
+        player_update(frame_time);
+        catacomb_level_update(frame_time);
 
         //update
         //player_update() etc..
