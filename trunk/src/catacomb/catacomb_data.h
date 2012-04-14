@@ -4,6 +4,8 @@
 
 #include "../common.h"
 
+#define PIC_SIZE 		16384
+
 #define EGA_DATA_LENGTH 46784
 #define EGA_TILE_SIZE   32
 #define NUM_EGA_TILES   (EGA_DATA_LENGTH/EGA_TILE_SIZE)
@@ -12,8 +14,8 @@
 #define CGA_TILE_SIZE   16
 #define NUM_CGA_TILES   (CGA_DATA_LENGTH/CGA_TILE_SIZE)
 
-static const byte END_PIC[16384] = {};
-static const byte TITLE_PIC[16384] = {};
+static const byte END_PIC[PIC_SIZE] = {};
+static const byte TITLE_PIC[PIC_SIZE] = {};
 
 static const byte CGA_DATA[CGA_DATA_LENGTH] = {};
 static const byte EGA_DATA[EGA_DATA_LENGTH] = {};
