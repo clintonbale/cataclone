@@ -11,11 +11,6 @@
 #include "catacomb/catacomb_graphics.h"
 #include "catacomb/catacomb_level.h"
 
-void check_collision() {
-   // level_t* l = catacomb_level_current();
-
-}
-
 void SDL_ShowFPS() {
 #define ALPHA 0.2
     static char fpsstr[16];
@@ -41,9 +36,16 @@ int main(int argc, char* argv[])
     FILE* fout = freopen( "CON", "w", stdout );
     FILE* ferr = freopen( "CON", "w", stderr );
 #endif
+    //graphics
     graphics_init();
     gl_draw_init();
     catacomb_graphics_init();
+
+    //sounds
+    sound_manager_init();
+    catacomb_sounds_load("SOUNDS.CAT");
+
+    catacomb_level_init();
 
     bool running = true;
     SDL_Event event;
@@ -52,7 +54,6 @@ int main(int argc, char* argv[])
     player_init();
 
     gltexture_t* tiles = gl_find_gltexture("ALLTILES");
-
     while(running) {
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
@@ -90,7 +91,6 @@ int main(int argc, char* argv[])
         player_draw();
 
 
-
 /*
         vec2_t ps;
         int p = catacomb_level_player_start(ps);
@@ -109,15 +109,19 @@ int main(int argc, char* argv[])
 
         SDL_GL_SwapBuffers();
 
-        SDL_Delay(1000/16.0f);
+        //SDL_Delay(1000/16.0f);
         //SDL_ShowFPS();
     }
+
+
+    catacomb_sounds_finish();
+    sound_manager_finish();
 
     gl_draw_finish();
     graphics_finish();
     catacomb_sounds_finish();
     catacomb_graphics_finish();
-    SDL_Quit();
 
+    SDL_Quit();
     return 0;
 }

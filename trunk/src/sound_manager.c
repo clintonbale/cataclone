@@ -60,15 +60,12 @@ void sound_manager_init() {
 
     SDL_PauseAudio(0);
 
-    memset(&sounds[0], 0, sizeof(sounds)*NUM_SOUNDS);
-
-    catacomb_sounds_load("SOUNDS.CAT");
+    memset(&sounds[0], 0, sizeof(sounds));
 }
 
 void sound_manager_finish() {
     SDL_PauseAudio(1);
     SDL_CloseAudio();
-    catacomb_sounds_finish();
 }
 
 //TODO: Add support for dpos?

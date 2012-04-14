@@ -26,4 +26,7 @@ void player_event(SDL_Event* event);
 void player_update();
 void player_draw(void);
 
+void player_colliding_tiles(byte collisions[4]);
+bool player_check_collision(void);
+
 #endif //_PLAYER_H_
