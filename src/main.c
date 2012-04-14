@@ -29,7 +29,7 @@ void SDL_ShowFPS() {
     fps_frametime = ALPHA * fps_delta + (1.0 - ALPHA) * fps_frametime;
     fps_framerate = 1000.0/fps_frametime;
 
-    sprintf(&fpsstr, "FPS: %.2f", fps_framerate);
+    sprintf((char*)&fpsstr, "FPS: %.2f", fps_framerate);
     graphics_viewport_set_title(fpsstr);
 #undef ALPHA
 }
@@ -109,6 +109,7 @@ int main(int argc, char* argv[])
 
         SDL_GL_SwapBuffers();
 
+        SDL_Delay(1000/16.0f);
         //SDL_ShowFPS();
     }
 

@@ -1,5 +1,4 @@
 #include "draw.h"
-#include "error.h"
 #include "graphics.h"
 
 #include <string.h>
@@ -140,7 +139,7 @@ void gl_draw_string_spritesheet(gltexture_t* spritesheet, const char* str, int x
     while(*s) {
         if(*s >= '!' && *s <= '~')
             gl_draw_tile_spritesheet(spritesheet, TILE_WIDTH*(*s), x, y);
-        x += TILE_WIDTH; *s++;
+        x += TILE_WIDTH; s++;
     }
 }
 
