@@ -151,7 +151,7 @@ void catacomb_level_render() {
             if(x > 0 && x < LEVEL_WIDTH && y > 0 && y < LEVEL_HEIGHT)
                 gl_draw_tile_spritesheet(level_textures, current_level->tiles[(y*LEVEL_HEIGHT)+x]<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
             else
-                gl_draw_tile_spritesheet(level_textures, TILE_PINK_BACKGROUND, x*TILE_WIDTH, y*TILE_HEIGHT);
+                gl_draw_tile_spritesheet(level_textures, TILE_PINK_BACKGROUND<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
         }
     }
 
@@ -159,7 +159,6 @@ void catacomb_level_render() {
     for(byte i = 0; i < current_level->num_teles; ++i) {
         uint x = (current_level->tele_locations[i] % LEVEL_WIDTH)<<3;
         uint y = (current_level->tele_locations[i] / LEVEL_WIDTH)<<3;
-
 
         gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+0,  x,  y);
         gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+8,  x+8,y);
