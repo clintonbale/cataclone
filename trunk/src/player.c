@@ -3,6 +3,7 @@
 #include "graphics.h"
 #include "catacomb/catacomb_level.h"
 #include "catacomb/catacomb_sound.h"
+#include "catacomb/catacomb_tiles.h"
 
 static uint16_t animations[16]={
     0<<3, 4<<3, //up
@@ -25,6 +26,17 @@ void player_init(void) {
 
     player_tiles = gl_find_gltexture("PLAYER");
     player.last_dir = RIGHT; //all maps start facing right.
+}
+
+void player_reset(void) {
+    player_init();
+
+    player.items[ITEM_POTION] = DEFAULT_PLAYER_POTIONS;
+    player.items[ITEM_KEY] = DEFAULT_PLAYER_KEYS;
+    player.items[ITEM_BOLT] = DEFAULT_PLAYER_BOLTS;
+    player.items[ITEM_NUKE] = DEFAULT_PLAYER_NUKES;
+
+    player.health = DEFAULT_PLAYER_HEALTH;
 }
 
 void player_event(SDL_Event* event) {
@@ -74,6 +86,46 @@ bool player_check_collision(void) {
     return false;
 }
 
+void player_check_items(void) {
+    const byte* level_tiles = (const byte*)&catacomb_level_current()->tiles;
+    const int x = player.position[0]/TILE_WIDTH;
+    const int y = player.position[1]/TILE_HEIGHT;
+    byte* tiles[4] = {
+        (byte*)&level_tiles[(y*LEVEL_HEIGHT)+x],
+        (byte*)&level_tiles[((y+1)*LEVEL_WIDTH)+x],
+        (byte*)&level_tiles[(y*LEVEL_HEIGHT)+x+1],
+        (byte*)&level_tiles[((y+1)*LEVEL_WIDTH)+x+1]
+    };
+    for(byte i = 0; i < 4; ++i) {
+        switch(*tiles[i]) {
+            case TILE_ITEM_KEY:
+                player.items[ITEM_KEY]++;
+                *tiles[i] = TILE_TYPE_FLOOR;
+
+                catacomb_sounds_play("item");
+                break;
+            case TILE_ITEM_POTION:
+                player.items[ITEM_POTION]++;
+                *tiles[i] = TILE_TYPE_FLOOR;
+
+                catacomb_sounds_play("item");
+                break;
+            case TILE_ITEM_SCROLL:
+                player.items[ITEM_BOLT]++;
+                *tiles[i] = TILE_TYPE_FLOOR;
+
+                catacomb_sounds_play("item");
+                break;
+            case TILE_ITEM_TREASURE:
+                player.score += 500;
+                *tiles[i] = TILE_TYPE_FLOOR;
+
+                catacomb_sounds_play("treasure");
+                break;
+        }
+    }
+}
+
 void player_update(float frame_time) {
     static float elapsed = 0;
     elapsed += frame_time;
@@ -88,8 +140,7 @@ void player_update(float frame_time) {
     //only move if time sinse last move is > 0.05;
     if(move && elapsed > 0.05f) {
         elapsed = 0;
-
-        int ox = player.position[0], oy = player.position[1];
+        ushort ox = player.position[0], oy = player.position[1];
 
         //animate the move
         player.curanim = player.curanim ? 0 : 1;
@@ -97,13 +148,18 @@ void player_update(float frame_time) {
         player.position[0] += (direction == LEFT) ? -TILE_WIDTH  : (direction == RIGHT) ? TILE_WIDTH  : 0;
         player.position[1] += (direction == UP)   ? -TILE_HEIGHT : (direction == DOWN)  ? TILE_HEIGHT : 0;
         if(player_check_collision()) {
-            //player.position[0] = ox;
-            //player.position[1] = oy;
-            //catacomb_sounds_play("blocked");
+            player.position[0] = ox;
+            player.position[1] = oy;
+            catacomb_sounds_play("blocked");
         }
+        else player_check_items();
 
-        static char ss[8];
-        sprintf(ss, "%d", player.position[0]/8);
+        //DEBUG STUFF
+        static byte colliding_tiles[4];
+        player_colliding_tiles(colliding_tiles);
+        static char ss[32];
+        sprintf(ss, "pos: %d, 0: %d, 1: %d, 2: %d, 3: %d", player.position[0]/8,
+                colliding_tiles[0], colliding_tiles[1], colliding_tiles[2], colliding_tiles[3]);
         graphics_viewport_set_title(ss);
     }
 
@@ -119,10 +175,10 @@ void player_update(float frame_time) {
 void player_draw(void) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(player.position[0]-(graphics_viewport_width()/2.0f) - PLAYER_WIDTH,
-            player.position[0]+(graphics_viewport_width()/2.0f) - PLAYER_WIDTH,
-            player.position[1]+(graphics_viewport_height()/2.0f) + PLAYER_HEIGHT,
-            player.position[1]-(graphics_viewport_height()/2.0f) + PLAYER_HEIGHT, 0.0f, 1.0f);
+    glOrtho(player.position[0]+PLAYER_CENTER-(graphics_viewport_width()/2.0f) - PLAYER_WIDTH,
+            player.position[0]+PLAYER_CENTER+(graphics_viewport_width()/2.0f) - PLAYER_WIDTH,
+            player.position[1]+(graphics_viewport_height()/2.0f) + PLAYER_HEIGHT - (TILE_HEIGHT/2),
+            player.position[1]-(graphics_viewport_height()/2.0f) + PLAYER_HEIGHT - (TILE_HEIGHT/2), 0.0f, 1.0f);
 
     gl_draw_tile_spritesheet(player_tiles, player.todraw[0], player.position[0],             player.position[1]);
     gl_draw_tile_spritesheet(player_tiles, player.todraw[1], player.position[0] + TILE_WIDTH,player.position[1]);
