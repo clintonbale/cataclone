@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="..\..\bin\cb" prefix_auto="1" extension_auto="1" />
+				<Option output="..\..\bin\catacomb_debug" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="..\..\bin" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
@@ -18,7 +18,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="..\..\bin\cb" prefix_auto="1" extension_auto="1" />
+				<Option output="..\..\bin\catacomb_release" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="..\..\bin" />
 				<Option object_output="obj\Release\" />
 				<Option type="0" />
@@ -41,8 +41,8 @@
 		</Compiler>
 		<Linker>
 			<Add option="-lmingw32" />
-			<Add option="-lSDLmain" />
 			<Add option="-lSDL" />
+			<Add option="-lSDLmain" />
 			<Add option="-lopengl32" />
 			<Add option="-lglu32" />
 		</Linker>
