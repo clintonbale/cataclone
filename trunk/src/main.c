@@ -135,6 +135,51 @@ void game_menu_draw() {
         gl_draw_tile_spritesheet(main, 0, (x<<3)+player.position[0]-88, player.position[1]+104);
 }
 
+bool show_logo_screen() {
+    bool selected = false;
+    bool keep_running = true;
+
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_TEXTURE_2D);
+    //only need to draw it once.
+    gl_draw_image(0, 0, graphics_viewport_width(), graphics_viewport_height(), gl_find_gltexture("TITLE")->texnum);
+    glDisable(GL_TEXTURE_2D);
+
+    SDL_GL_SwapBuffers();
+
+    SDL_Event event;
+    while(!selected) {
+        //Sleep so we dont eat the cpu.
+        SDL_Delay(100);
+        while(SDL_PollEvent(&event)) {
+            switch(event.type) {
+                case SDL_KEYUP:
+                {
+                    switch(event.key.keysym.sym) {
+                        case SDLK_ESCAPE:
+                            keep_running = false;
+                            break;
+                        case SDLK_c:
+                            graphics_set_mode(GFX_MODE_CGA);
+                            break;
+                        default:
+                            graphics_set_mode(GFX_MODE_EGA);
+                            break;
+                    }
+                    selected = true;
+                }
+                break;
+                default: break;
+            }
+        }
+    }
+
+    //clear before we leave
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    return keep_running;
+}
+
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
@@ -159,11 +204,15 @@ int main(int argc, char* argv[])
     catacomb_level_change(1);
     player_reset();
 
+    running = show_logo_screen();
+
     gltexture_t* tiles = gl_find_gltexture("ALLTILES");
 
     uint current_time = SDL_GetTicks();
     uint previous_time;
     float frame_time;
+
+    glEnable(GL_TEXTURE_2D);
     while(running) {
         previous_time = current_time;
         current_time = SDL_GetTicks();
@@ -195,46 +244,30 @@ int main(int argc, char* argv[])
             player_event(&event);
         }
 
+        //Updating...
         player_update(frame_time);
         catacomb_level_update(frame_time);
 
-        //update
-        //player_update() etc..
-
-        //draw
-        //player_draw() etc..
-
+        //Rendering...
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_TEXTURE_2D);
-
         catacomb_level_render();
-
         player_draw();
         game_menu_draw();
 
-/*
-        vec2_t ps;
-        int p = catacomb_level_player_start(ps);
-        printf("x: %d, y: %d\n", ps[0], ps[1]);
-        gl_draw_tile_spritesheet(tiles, 190<<3, ps[0]*8, ps[1]*8);
-
-*/
+/* draws all tiles on the top of the screen for debugging
         int x = 0, y = 0;
         for(int i = 0; i < 11696/8; i++) {
             gl_draw_tile_spritesheet(tiles, i<<3, x, y);
             x+=8;
         }
-
-
-        glDisable(GL_TEXTURE_2D);
+*/
 
         SDL_GL_SwapBuffers();
-
-        //SDL_Delay(1000/16.0f);
         //SDL_ShowFPS();
     }
+    glDisable(GL_TEXTURE_2D);
 
-
+    //Cleanup...
     catacomb_sounds_finish();
     sound_manager_finish();
 
