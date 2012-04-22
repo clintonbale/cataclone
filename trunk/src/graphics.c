@@ -13,8 +13,8 @@
 
 static SDL_Surface* screen;
 
-static int window_height;
-static int window_width;
+static uint window_height;
+static uint window_width;
 
 static int window_flags;
 static bool window_vsync;
@@ -89,10 +89,10 @@ void graphics_viewport_set_title(const char* title) {
     SDL_WM_SetCaption(title, NULL);
 }
 
-int graphics_viewport_height() {
+uint graphics_viewport_height() {
     return window_height;
 }
 
-int graphics_viewport_width() {
+uint graphics_viewport_width() {
     return window_width;
 }

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define SHOW_ERRORS     1
 #define SHOW_WARNINGS   1
