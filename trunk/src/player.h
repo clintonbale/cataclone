@@ -49,7 +49,7 @@ void player_event(SDL_Event* event);
 void player_update(float frame_time);
 void player_draw(void);
 
-void player_colliding_tiles(byte collisions[4]);
+bool player_colliding_tiles(byte collisions[4]);
 bool player_check_collision();
 
 #endif //_PLAYER_H_

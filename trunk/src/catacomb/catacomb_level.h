@@ -46,5 +46,6 @@ const level_t* catacomb_level_current(void);
 
 void catacomb_level_update(float game_time);
 void catacomb_level_render(void);
+void catacomb_level_remove_door(ushort x, ushort y);
 
 #endif // _CATACOMB_LEVEL_H

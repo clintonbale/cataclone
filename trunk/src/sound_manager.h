@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#define NUM_SOUNDS 8
+#define NUM_SOUNDS 2
 
 void sound_manager_init();
 void sound_manager_finish();

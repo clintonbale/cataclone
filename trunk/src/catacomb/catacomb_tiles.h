@@ -60,6 +60,11 @@
 
 #define TILE_TYPE_FLOOR 128
 
+#define TILE_TYPE_V_DOOR  165
+#define TILE_TYPE_H_DOOR  166
+#define ISDOOR(x) ((x)==TILE_TYPE_V_DOOR||(x)==TILE_TYPE_H_DOOR)
+
+
 #define TILE_HIDDEN_POTION 143
 #define TILE_HIDDEN_BOLT   144
 #define TILE_HIDDEN_KEY    145
