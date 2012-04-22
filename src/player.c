@@ -63,7 +63,7 @@ void player_event(SDL_Event* event) {
 }
 
 //Gets colliding tiles,
-void player_colliding_tiles(byte collisions[4]) {
+bool player_colliding_tiles(byte collisions[4]) {
     const byte* level_tiles = (const byte*)&catacomb_level_current()->tiles;
     const int x = player.position[0]/TILE_WIDTH;
     const int y = player.position[1]/TILE_HEIGHT;
@@ -72,15 +72,32 @@ void player_colliding_tiles(byte collisions[4]) {
     collisions[1] = level_tiles[((y+1)*LEVEL_WIDTH)+x];  //bottom left
     collisions[2] = level_tiles[(y*LEVEL_HEIGHT)+x+1];    //top right
     collisions[3] = level_tiles[((y+1)*LEVEL_WIDTH)+x+1];//bottom right
+
+    return (y < 0 || x < 0 || y > LEVEL_HEIGHT || x > LEVEL_WIDTH);
 }
 
 bool player_check_collision(void) {
     static byte collisions[4];
-    player_colliding_tiles(collisions);
+    if(player_colliding_tiles(collisions))
+        return true;
 
     for(byte i = 0; i < sizeof(collisions); ++i) {
-        if(collisions[i] > 128 && collisions[i] < 153)
+        if(collisions[i] < 153 && collisions[i] != 128) {//if((collisions[i] > 128 && collisions[i] < 153) || (collisions[i] >= 0 && collisions[i] <= 9)) {
+            catacomb_sounds_play("blocked");
             return true;
+        }
+        //door that requires key
+        else if(collisions[i] == TILE_TYPE_V_DOOR || collisions[i] == TILE_TYPE_H_DOOR) {
+            if(player.items[ITEM_KEY] > 0) {
+                player.items[ITEM_KEY]--;
+                catacomb_level_remove_door(player.position[0]/TILE_WIDTH, player.position[1]/TILE_HEIGHT);
+                catacomb_sounds_play("opendoor");
+            }
+            else {
+                catacomb_sounds_play("noitem");
+            }
+            return true;
+        }
     }
 
     return false;
@@ -150,7 +167,6 @@ void player_update(float frame_time) {
         if(player_check_collision()) {
             player.position[0] = ox;
             player.position[1] = oy;
-            catacomb_sounds_play("blocked");
         }
         else player_check_items();
 

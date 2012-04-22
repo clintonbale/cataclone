@@ -64,6 +64,7 @@ static level_t* catacomb_level_load(const char* file) {
                     case TILE_TYPE_BIGPURPIMP:
                     case TILE_TYPE_REDIMP:
                     case TILE_TYPE_LASTBOSS:
+                        //store the location of the tile and the monster type
                         level->monster_spawns[level->num_monsters] = tile_index;
                         level->monster_spawns[level->num_monsters++] |= (last_tile-TILE_TYPE_A)<<12;
                         break;
@@ -103,11 +104,38 @@ static int catacomb_level_find_tile(vec2_t location, uint16_t start, byte tile_i
     for(uint16_t i = start; i < (LEVEL_WIDTH*LEVEL_HEIGHT); ++i) {
         if(current_level->tiles[i] == tile_id) {
             location[0] = i % LEVEL_WIDTH; // x
-            location[1] = (int)(i / LEVEL_HEIGHT); // y
+            location[1] = i / LEVEL_WIDTH; // y
             return i + 1;
         }
     }
     return -1;
+}
+
+void catacomb_level_remove_door(ushort x, ushort y) {
+    const byte* tiles = current_level->tiles;
+    byte* adjacent[4] = {
+        (byte*)&tiles[((y-1)*LEVEL_HEIGHT)+x],  //NORTH
+        (byte*)&tiles[((y+1)*LEVEL_WIDTH)+x],   //SOUTH
+        (byte*)&tiles[(y*LEVEL_HEIGHT)+x+1],    //EAST
+        (byte*)&tiles[(y*LEVEL_WIDTH)+x-1]     //WEST
+    };
+
+    if(ISDOOR(*adjacent[0])) {
+        *adjacent[0] = TILE_TYPE_FLOOR;
+        catacomb_level_remove_door(x, y-1);
+    }
+    if(ISDOOR(*adjacent[1])) {
+        *adjacent[1] = TILE_TYPE_FLOOR;
+        catacomb_level_remove_door(x, y+1);
+    }
+    if(ISDOOR(*adjacent[2])) {
+        *adjacent[2] = TILE_TYPE_FLOOR;
+        catacomb_level_remove_door(x+1, y);
+    }
+    if(ISDOOR(*adjacent[3])) {
+        *adjacent[3] = TILE_TYPE_FLOOR;
+        catacomb_level_remove_door(x-1, y);
+    }
 }
 
 const level_t* catacomb_level_current(void) {

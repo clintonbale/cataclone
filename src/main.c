@@ -86,12 +86,14 @@ int main(int argc, char* argv[])
                         catacomb_level_next();
                         player_init();
                     }
-                    else if(event.key.keysym.sym == SDLK_x) {
+                    else if(event.key.keysym.sym == SDLK_x)
                         player.health--;
-                    }
-                    else if(event.key.keysym.sym == SDLK_c) {
+                    else if(event.key.keysym.sym == SDLK_c)
                         player.shotpower++;
-                    }
+                    else if(event.key.keysym.sym == SDLK_z)
+                        player.items[ITEM_KEY]++;
+                    else if(event.key.keysym.sym == SDLK_v)
+                        menu_push(menu_create_message_box("QUIT (Y/N)? "));
                     break;
                 case SDL_QUIT:
                     running = false;
@@ -115,13 +117,13 @@ int main(int argc, char* argv[])
         menu_render_all();
         draw_black_bars();
 
-/* draws all tiles on the top of the screen for debugging
+/* draws all tiles on the top of the screen for debugging */
         int x = 0, y = 0;
         for(int i = 0; i < 11696/8; i++) {
             gl_draw_tile_spritesheet(tiles, i<<3, x, y);
             x+=8;
         }
-*/
+
 
         SDL_GL_SwapBuffers();
         //SDL_ShowFPS();
@@ -129,6 +131,7 @@ int main(int argc, char* argv[])
     glDisable(GL_TEXTURE_2D);
 
     //Cleanup...
+    menu_finish();
     catacomb_sounds_finish();
     sound_manager_finish();
 
@@ -205,10 +208,10 @@ void main_panel_update(const void* ptr, float gt) {
     }
     //TODO: This double for may need some optimizing.
     for(byte i = 0; i < sizeof(player.items); ++i) {
-        if(player.items[i] != last_items[i] && player.items[i] > 0) {
+        if(player.items[i] != last_items[i]) {
             byte tile = i == ITEM_KEY ? TILE_MENU_KEY : i == ITEM_POTION ? TILE_MENU_POT : TILE_MENU_SCROLL;
-            for(byte n = 0; n < player.items[i] && n < MAX_PLAYER_ITEMS; ++n) {
-                menu->data[MENU_ITEM_OFFSET+(i*menu->size[0])+n] = tile;
+            for(byte n = 0; n < MAX_PLAYER_ITEMS; ++n) {
+                menu->data[MENU_ITEM_OFFSET+(i*menu->size[0])+n] = player.items[i] > n ? tile : TILE_MENU_WHITE;
             }
             last_items[i] = player.items[i];
         }

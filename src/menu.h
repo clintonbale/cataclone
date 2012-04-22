@@ -18,6 +18,7 @@ menu_t* menu_pop(void);
 menu_t* menu_peek(void);
 
 menu_t* menu_new(ushort x, ushort y, ushort w, ushort h, update_ptr func);
+void    menu_finish();
 void    menu_free(menu_t* menu);
 
 void    menu_render_all(void);

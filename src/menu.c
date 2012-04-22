@@ -67,6 +67,11 @@ menu_t* menu_new(ushort x, ushort y, ushort w, ushort h, update_ptr func) {
     return new_menu;
 }
 
+void menu_finish() {
+    while(--num_menus)
+        menu_free(menu_pop());
+}
+
 void menu_free(menu_t* menu) {
     if(menu) {
         if(menu->data) {
@@ -79,7 +84,8 @@ void menu_free(menu_t* menu) {
 }
 
 void menu_render_all() {
-    for(byte i = 0; i < num_menus; ++i) {
+    //draw bottom to top of stack
+    for(short i = num_menus-1; i >= 0; --i) {
         if(menu_stack[i])
             menu_render(menu_stack[i]);
     }
@@ -143,6 +149,19 @@ menu_t* menu_create_side_panel(update_ptr func) {
         panel->data[(14*panel->size[0])+x] = TILE_MENU_BLACK;
         panel->data[(17*panel->size[0])+x] = TILE_MENU_BLACK;
     }
+
+    return panel;
+}
+
+//TODO: Parse newline tokens, center text, remove magic numbers, support update func
+menu_t* menu_create_message_box(const char* msg) {
+    ushort width = strlen(msg)+2;
+    ushort x = 12-width/2;
+    ushort y = 12-3/2;
+
+    menu_t* panel = menu_new(x, y, width, 3, NULL);
+
+    menu_add_text(panel, 1, 1, msg);
 
     return panel;
 }
