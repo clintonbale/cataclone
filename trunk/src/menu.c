@@ -3,6 +3,25 @@
 #include "draw.h"
 #include "graphics.h"
 
+#define MAX_MENUS 4
+menu_t* menu_stack[MAX_MENUS] = {(menu_t*)0};
+byte    num_menus = 0;
+
+menu_t* menu_push(const menu_t* menu) {
+    if(num_menus+1 > MAX_MENUS) error("%s", "Cannot add new menu, the menu_stack is full.");
+    return menu_stack[num_menus++] = (menu_t*)menu;
+}
+
+menu_t* menu_pop(void) {
+    if(!num_menus) error("%s", "No elements in the menu_stack.");
+    return menu_stack[--num_menus];
+}
+
+menu_t* menu_peek(void) {
+    if(!num_menus) error("%s", "No elements in the menu_stack.");
+    return menu_stack[num_menus-1];
+}
+
 menu_t* menu_new(ushort x, ushort y, ushort w, ushort h, update_ptr func) {
     menu_t* new_menu = NULL;
 
@@ -17,7 +36,6 @@ menu_t* menu_new(ushort x, ushort y, ushort w, ushort h, update_ptr func) {
     new_menu->position[0] = x;
     new_menu->position[1] = y;
     new_menu->update = func;
-    new_menu->visible = true;
 
     byte tile = 0;
     //build the borders and the guts
@@ -60,14 +78,23 @@ void menu_free(menu_t* menu) {
     }
 }
 
-void menu_tick(const menu_t* menu, float gt) {
+void menu_render_all() {
+    for(byte i = 0; i < num_menus; ++i) {
+        if(menu_stack[i])
+            menu_render(menu_stack[i]);
+    }
+}
+
+void menu_update_all(float gt) {
+    for(byte i = 0; i < num_menus; ++i) {
+        if(menu_stack[i] && menu_stack[i]->update)
+            menu_stack[i]->update(menu_stack[i], gt);
+    }
+}
+
+void menu_render(const menu_t* menu) {
     if(!menu || !menu->data)
         error("NULL menu.");
-    if(menu->update)
-        menu->update(menu, gt);
-    if(!menu->visible)
-        return;
-
 
     gltexture_t* main_tiles = gl_find_gltexture("MAIN");
 
@@ -93,6 +120,11 @@ void menu_add_text(const menu_t* menu, ushort x, ushort y, const char* text) {
 
     memcpy(&menu->data[(y*menu->size[0])+x], text, strlen(text));
 }
+
+#define SIDE_PANEL_X 24
+#define SIDE_PANEL_Y 0
+#define SIDE_PANEL_WIDTH 15
+#define SIDE_PANEL_HEIGHT 24
 
 menu_t* menu_create_side_panel(update_ptr func) {
     menu_t* panel = menu_new(SIDE_PANEL_X, SIDE_PANEL_Y, SIDE_PANEL_WIDTH, SIDE_PANEL_HEIGHT, func);
