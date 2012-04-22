@@ -6,6 +6,7 @@
 #include "draw.h"
 #include "player.h"
 #include "sound_manager.h"
+#include "menu.h"
 
 #include "catacomb/catacomb_sound.h"
 #include "catacomb/catacomb_scores.h"
@@ -31,154 +32,9 @@ void SDL_ShowFPS() {
 #undef ALPHA
 }
 
-#define MENU_LEVEL_OFFSET 25
-#define MENU_SCORE_OFFSET 52
-#define MENU_TOP_OFFSET   82
-#define MENU_SHOTPOWER_OFFSET 211
-#define MENU_BODY_OFFSET      256
-#define MENU_ITEM_OFFSET 108
-
-void game_menu_draw() {
-    static const vec2_t menu_size = {15, 24};
-    static char score[8];
-    static char top[8];
-    static char level[4];
-    static char menu[] =
-    "abbbbbbbbbbbbbc"
-    "dlllLEVELllllle"
-    "dllllllllllllle"
-    "dSCORE:llllllle"
-    "dllllllllllllle"
-    "dTOPll:llllllle"
-    "dllllllllllllle"
-    "dK:llllllllllle"
-    "dP:llllllllllle"
-    "dB:llllllllllle"
-    "dN:llllllllllle"
-    "dllllllllllllle"
-    "dllllllllllllle"
-    "dlSHOTlPOWERlle"
-    "d-------------e"
-    "dllllllllllllle"
-    "dllllBODYllllle"
-    "d-------------e"
-    "dllllllllllllle"
-    "dllllllllllllle"
-    "dllllllllllllle"
-    "dllllllllllllle"
-    "dllllllllllllle"
-    "fgggggggggggggh";
-
-    //Clear the current score/top/level with the WHITE tile.
-    memset((char*)&score, 'l', sizeof(score));
-    memset((char*)&top, 'l', sizeof(top));
-    memset((char*)&level, 'l', sizeof(level));
-
-    //Get the score/top/level
-    sprintf((char*)&score, "%d", player.score);
-    sprintf((char*)&top, "%d", player.score);
-    sprintf((char*)&level, "%dl", catacomb_level_current()->level_number);
-
-    //Set it
-    memcpy(&menu[MENU_LEVEL_OFFSET], level, strlen(level));
-    memcpy(&menu[MENU_SCORE_OFFSET], score, strlen(score));
-    memcpy(&menu[MENU_TOP_OFFSET], top, strlen(top));
-
-    for(byte i = 0; i < sizeof(player.items); ++i) {
-        if(player.items[i] > 0) {
-            byte tile = i == ITEM_KEY ? TILE_MENU_KEY : i == ITEM_POTION ? TILE_MENU_POT : TILE_MENU_SCROLL;
-            for(byte n = 0; n < 10 && n < player.items[i]; n++) {
-                menu[MENU_ITEM_OFFSET+(i*menu_size[0])+n] = tile;
-            }
-        }
-    }
-
-    //health progress bar
-    for(byte i = 0; i < MAX_PLAYER_HEALTH; ++i) {
-        if(i == 0 && player.health)
-            menu[MENU_BODY_OFFSET] = TILE_MENU_PROGRESSL;
-        else if(i == player.health-1)
-            menu[MENU_BODY_OFFSET+i] = TILE_MENU_PROGRESSR;
-        else if(i < player.health)
-            menu[MENU_BODY_OFFSET+i] = TILE_MENU_PROGRESS;
-        else
-            menu[MENU_BODY_OFFSET+i] = TILE_MENU_BLACK;
-    }
-
-    //offset is used to make the progress bar red if we are at max power!!!
-    int offset = player.shotpower == MAX_SHOT_POWER ? -4 : 0;
-    for(byte i = 0; i < MAX_SHOT_POWER-1; ++i) {
-        if(i == 0 && player.shotpower)
-            menu[MENU_SHOTPOWER_OFFSET] = TILE_MENU_PROGRESSL+offset;
-        else if(player.shotpower == MAX_SHOT_POWER && i == MAX_SHOT_POWER-2)
-            menu[MENU_SHOTPOWER_OFFSET+i] = TILE_MENU_PROGRESSR+offset;
-        else if(i == player.shotpower-1)
-            menu[MENU_SHOTPOWER_OFFSET+i] = TILE_MENU_PROGRESSR+offset;
-        else if(i < player.shotpower)
-            menu[MENU_SHOTPOWER_OFFSET+i] = TILE_MENU_PROGRESS+offset;
-        else
-            menu[MENU_SHOTPOWER_OFFSET+i] = TILE_MENU_BLACK+offset;
-    }
-
-    gltexture_t* main = gl_find_gltexture("MAIN");
-    for(byte x = 0; x < menu_size[0]; ++x) {
-        for(byte y = 0; y < menu_size[1]; ++y) {
-            char cur = menu[(y * menu_size[0]) + x];
-            byte tile = cur > '`' ? TILE_MENU_TOPL+(cur-'a') : cur;
-            gl_draw_tile_spritesheet(main, tile<<3, (x<<3)+player.position[0]+104, (y<<3)+player.position[1]-88);
-        }
-    }
-    //draw the black borders
-    for(byte y = 0; y < 200/TILE_HEIGHT; y++)
-        gl_draw_tile_spritesheet(main, 0, player.position[0]+224, (y<<3)+player.position[1]-88);
-    for(byte x = 0; x < 320/TILE_WIDTH; x++)
-        gl_draw_tile_spritesheet(main, 0, (x<<3)+player.position[0]-88, player.position[1]+104);
-}
-
-bool show_logo_screen() {
-    bool selected = false;
-    bool keep_running = true;
-
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
-    glEnable(GL_TEXTURE_2D);
-    //only need to draw it once.
-    gl_draw_image(0, 0, graphics_viewport_width(), graphics_viewport_height(), gl_find_gltexture("TITLE")->texnum);
-    glDisable(GL_TEXTURE_2D);
-
-    SDL_GL_SwapBuffers();
-
-    SDL_Event event;
-    while(!selected) {
-        //Sleep so we dont eat the cpu.
-        SDL_Delay(100);
-        while(SDL_PollEvent(&event)) {
-            switch(event.type) {
-                case SDL_KEYUP:
-                {
-                    switch(event.key.keysym.sym) {
-                        case SDLK_ESCAPE:
-                            keep_running = false;
-                            break;
-                        case SDLK_c:
-                            graphics_set_mode(GFX_MODE_CGA);
-                            break;
-                        default:
-                            graphics_set_mode(GFX_MODE_EGA);
-                            break;
-                    }
-                    selected = true;
-                }
-                break;
-                default: break;
-            }
-        }
-    }
-
-    //clear before we leave
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    return keep_running;
-}
+bool show_logo_screen();
+void draw_black_bars();
+void main_panel_update(const void*,float);
 
 int main(int argc, char* argv[])
 {
@@ -205,6 +61,8 @@ int main(int argc, char* argv[])
     player_reset();
 
     running = show_logo_screen();
+
+    menu_t* game_menu = menu_create_side_panel(main_panel_update);
 
     gltexture_t* tiles = gl_find_gltexture("ALLTILES");
 
@@ -252,7 +110,9 @@ int main(int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         catacomb_level_render();
         player_draw();
-        game_menu_draw();
+
+        menu_tick(game_menu, frame_time);
+        draw_black_bars();
 
 /* draws all tiles on the top of the screen for debugging
         int x = 0, y = 0;
@@ -278,4 +138,144 @@ int main(int argc, char* argv[])
 
     SDL_Quit();
     return 0;
+}
+
+#define MENU_PLAYER_HEALTH_Y 17
+#define MENU_PLAYER_SHOTPW_Y 14
+#define MENU_PROGRESS_WIDTH  13
+#define MENU_ITEM_OFFSET 108
+
+void main_panel_update(const void* ptr, float gt) {
+    //Buffer for all int to string conversions
+    static char buffer[16];
+    //Store the last updated stuff so we dont have
+    //to update everything all the itme.
+    static byte last_health = 0;
+    static byte last_shotpower = 0;
+    static byte last_items[4] = {0,0,0,0};
+    const menu_t* menu = (const menu_t*)ptr;
+
+    sprintf(&buffer[0], "%-2d", catacomb_level_current()->level_number);
+    menu_add_text(menu, 10, 1, buffer);
+
+    sprintf(&buffer[0], "%-7d", player.score);
+    menu_add_text(menu, 7, 3, buffer);
+
+    //TODO: Get the top highscore.
+    sprintf(&buffer[0], "%-7d", player.score);
+    menu_add_text(menu, 7, 5, buffer);
+
+    if(player.health != last_health) {
+        byte* health_offset = &menu->data[MENU_PLAYER_HEALTH_Y*menu->size[0]];
+        //Clear existing progress
+        memset(health_offset+1, TILE_MENU_BLACK, 13);
+        for(byte i = 2; i < player.health && i < MAX_PLAYER_HEALTH; ++i) {
+            *(health_offset+i) = TILE_MENU_PROGRESS;
+        }
+        //Only draw the edges if we have health
+        if(player.health > 0) {
+            *(health_offset+1) = TILE_MENU_PROGRESSL;
+            //Only draw the right edge if we're at the right
+            if(player.health > 1)
+                //Write the right edge & don't overflow!
+                *(health_offset+(player.health>MAX_PLAYER_HEALTH?MAX_PLAYER_HEALTH:player.health)) = TILE_MENU_PROGRESSR;
+        }
+        last_health = player.health;
+    }
+    if(player.shotpower != last_shotpower) {
+        byte* shotpower_offset = &menu->data[MENU_PLAYER_SHOTPW_Y*menu->size[0]];
+        //Get the correct offset based on what the health is
+        //If the health is at max, offset the tile index by -4
+        //so that we can use the red tiles instead.
+        int offset = player.shotpower >= MAX_SHOT_POWER ? -4 : 0;
+
+        memset(shotpower_offset+1, TILE_MENU_BLACK, MENU_PROGRESS_WIDTH);
+        for(byte i = 2; i < player.shotpower && i < MAX_PLAYER_HEALTH; ++i) {
+            *(shotpower_offset+i) = TILE_MENU_PROGRESS+offset;
+        }
+
+        if(player.shotpower > 0) {
+            *(shotpower_offset+1) = TILE_MENU_PROGRESSL+offset;
+            if(player.shotpower > 1)
+                //Write the right edge & don't overflow!
+                *(shotpower_offset+(player.shotpower>MAX_PLAYER_HEALTH?MAX_PLAYER_HEALTH:player.shotpower)) = TILE_MENU_PROGRESSR+offset;
+        }
+        last_shotpower = player.shotpower;
+    }
+    //TODO: This double for may need some optimizing.
+    for(byte i = 0; i < sizeof(player.items); ++i) {
+        if(player.items[i] != last_items[i] && player.items[i] > 0) {
+            byte tile = i == ITEM_KEY ? TILE_MENU_KEY : i == ITEM_POTION ? TILE_MENU_POT : TILE_MENU_SCROLL;
+            for(byte n = 0; n < player.items[i] && n < MAX_PLAYER_ITEMS; ++n) {
+                menu->data[MENU_ITEM_OFFSET+(i*menu->size[0])+n] = tile;
+            }
+            last_items[i] = player.items[i];
+        }
+    }
+}
+
+void draw_black_bars() {
+    gltexture_t* main_tiles = gl_find_gltexture("MAIN");
+
+    glPushMatrix(); //save the camera state
+    glLoadIdentity();
+    glOrtho(0, graphics_viewport_width(), graphics_viewport_height(), 0, 0.0f, 1.0f);
+
+    const uint bar_x = graphics_viewport_width()-TILE_WIDTH;
+    const uint bar_y = graphics_viewport_height()-TILE_HEIGHT;
+
+    //Loop through and draw
+    for(ushort x = 0; x < 320; x += TILE_WIDTH) {
+        gl_draw_tile_spritesheet(main_tiles, 0, x, bar_y);
+    }
+    for(ushort y = 0; y < 200; y += TILE_HEIGHT) {
+        gl_draw_tile_spritesheet(main_tiles, 0, bar_x, y);
+    }
+
+    glPopMatrix(); //restore the camera state
+}
+
+bool show_logo_screen() {
+    bool selected = false;
+    bool keep_running = true;
+
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_TEXTURE_2D);
+    //only need to draw it once.
+    gl_draw_image(0, 0, graphics_viewport_width(), graphics_viewport_height(), gl_find_gltexture("TITLE")->texnum);
+    glDisable(GL_TEXTURE_2D);
+
+    SDL_GL_SwapBuffers();
+
+    SDL_Event event;
+    while(!selected) {
+        //Sleep so we dont eat the cpu.
+        SDL_Delay(100);
+        while(SDL_PollEvent(&event)) {
+            switch(event.type) {
+                case SDL_KEYUP:
+                {
+                    switch(event.key.keysym.sym) {
+                        case SDLK_ESCAPE:
+                            keep_running = false;
+                            break;
+                        case SDLK_c:
+                            graphics_set_mode(GFX_MODE_CGA);
+                            break;
+                        default:
+                            graphics_set_mode(GFX_MODE_EGA);
+                            break;
+                    }
+                    selected = true;
+                }
+                break;
+                default: break;
+            }
+        }
+    }
+
+    //clear before we leave
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    return keep_running;
 }

@@ -16,6 +16,7 @@ typedef enum {UP = 0,RIGHT = 1,DOWN = 2,LEFT = 3} dir_t;
 #define ITEM_POTION 1
 #define ITEM_BOLT   2
 #define ITEM_NUKE   3
+#define MAX_PLAYER_ITEMS 10
 
 #define MAX_PLAYER_HEALTH 13
 #define DEFAULT_PLAYER_HEALTH MAX_PLAYER_HEALTH

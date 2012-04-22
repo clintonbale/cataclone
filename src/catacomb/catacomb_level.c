@@ -57,7 +57,7 @@ static level_t* catacomb_level_load(const char* file) {
                         break;
                     case TILE_TYPE_SPAWN:
                         level->spawn[0] = (tile_index) % LEVEL_WIDTH;
-                        level->spawn[1] = (tile_index) / LEVEL_HEIGHT;
+                        level->spawn[1] = (tile_index) / LEVEL_WIDTH;
                         break;
                     case TILE_TYPE_WHITEIMP:
                     case TILE_TYPE_BIGREDIMP:
