@@ -3,29 +3,27 @@
 
 #include "common.h"
 
-#define SIDE_PANEL_X 24
-#define SIDE_PANEL_Y 0
-#define SIDE_PANEL_WIDTH 15
-#define SIDE_PANEL_HEIGHT 24
-
-#define MAX_MENUS 5
-
 typedef void(*update_ptr)(const void*,float);
 typedef struct {
     vec2_t      position;
     vec2_t      size;
     byte*       data;
-    bool        visible;
     update_ptr  update;
 } menu_t;
 
-//TODO: Make use of active_menus, loop through it in MAIN
-menu_t* active_menus[MAX_MENUS];
+//Puts a new menu on the menu stack.
+//menus on top are drawn first.
+menu_t* menu_push(const menu_t* m);
+menu_t* menu_pop(void);
+menu_t* menu_peek(void);
 
 menu_t* menu_new(ushort x, ushort y, ushort w, ushort h, update_ptr func);
 void    menu_free(menu_t* menu);
 
-void    menu_tick(const menu_t* menu, float gt);
+void    menu_render_all(void);
+void    menu_update_all(float gt);
+
+void    menu_render(const menu_t* menu);
 void    menu_add_text(const menu_t* menu, ushort x, ushort y, const char* text);
 
 //handle creating all basic menus

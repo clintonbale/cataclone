@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
     running = show_logo_screen();
 
-    menu_t* game_menu = menu_create_side_panel(main_panel_update);
+    menu_push(menu_create_side_panel(main_panel_update));
 
     gltexture_t* tiles = gl_find_gltexture("ALLTILES");
 
@@ -105,13 +105,14 @@ int main(int argc, char* argv[])
         //Updating...
         player_update(frame_time);
         catacomb_level_update(frame_time);
+        menu_update_all(frame_time);
 
         //Rendering...
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         catacomb_level_render();
         player_draw();
 
-        menu_tick(game_menu, frame_time);
+        menu_render_all();
         draw_black_bars();
 
 /* draws all tiles on the top of the screen for debugging
