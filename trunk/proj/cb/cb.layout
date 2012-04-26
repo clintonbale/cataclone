@@ -4,16 +4,16 @@
 	<File name="..\..\src\catacomb\catacomb_data.h" open="0" top="0" tabpos="2">
 		<Cursor position="210" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_graphics.c" open="0" top="0" tabpos="9">
-		<Cursor position="1266" topLine="0" />
+	<File name="..\..\src\catacomb\catacomb_graphics.c" open="0" top="0" tabpos="13">
+		<Cursor position="3241" topLine="68" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_graphics.h" open="0" top="0" tabpos="3">
 		<Cursor position="466" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_level.c" open="1" top="1" tabpos="11">
-		<Cursor position="3748" topLine="96" />
+	<File name="..\..\src\catacomb\catacomb_level.c" open="0" top="0" tabpos="11">
+		<Cursor position="5356" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_level.h" open="1" top="0" tabpos="12">
+	<File name="..\..\src\catacomb\catacomb_level.h" open="0" top="0" tabpos="12">
 		<Cursor position="933" topLine="8" />
 	</File>
 	<File name="..\..\src\catacomb\catacomb_scores.c" open="0" top="0" tabpos="10">
@@ -28,46 +28,46 @@
 	<File name="..\..\src\catacomb\catacomb_sound.h" open="0" top="0" tabpos="5">
 		<Cursor position="322" topLine="0" />
 	</File>
-	<File name="..\..\src\catacomb\catacomb_tiles.h" open="1" top="0" tabpos="5">
-		<Cursor position="1108" topLine="34" />
+	<File name="..\..\src\catacomb\catacomb_tiles.h" open="1" top="0" tabpos="2">
+		<Cursor position="1715" topLine="39" />
 	</File>
-	<File name="..\..\src\common.c" open="0" top="0" tabpos="2">
+	<File name="..\..\src\common.c" open="1" top="0" tabpos="6">
 		<Cursor position="265" topLine="0" />
 	</File>
-	<File name="..\..\src\common.h" open="0" top="0" tabpos="3">
-		<Cursor position="99" topLine="0" />
+	<File name="..\..\src\common.h" open="1" top="0" tabpos="7">
+		<Cursor position="401" topLine="15" />
 	</File>
-	<File name="..\..\src\draw.c" open="0" top="0" tabpos="4">
-		<Cursor position="4446" topLine="21" />
+	<File name="..\..\src\draw.c" open="1" top="0" tabpos="9">
+		<Cursor position="163" topLine="0" />
 	</File>
-	<File name="..\..\src\draw.h" open="0" top="0" tabpos="6">
-		<Cursor position="670" topLine="0" />
+	<File name="..\..\src\draw.h" open="1" top="0" tabpos="8">
+		<Cursor position="242" topLine="0" />
 	</File>
-	<File name="..\..\src\graphics.c" open="1" top="0" tabpos="7">
-		<Cursor position="144" topLine="0" />
+	<File name="..\..\src\graphics.c" open="1" top="0" tabpos="10">
+		<Cursor position="494" topLine="0" />
 	</File>
-	<File name="..\..\src\graphics.h" open="1" top="0" tabpos="6">
+	<File name="..\..\src\graphics.h" open="1" top="0" tabpos="3">
 		<Cursor position="83" topLine="0" />
 	</File>
 	<File name="..\..\src\main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2162" topLine="66" />
+		<Cursor position="1138" topLine="22" />
 	</File>
-	<File name="..\..\src\menu.c" open="1" top="0" tabpos="2">
-		<Cursor position="4870" topLine="125" />
+	<File name="..\..\src\menu.c" open="0" top="0" tabpos="2">
+		<Cursor position="4583" topLine="125" />
 	</File>
-	<File name="..\..\src\menu.h" open="1" top="0" tabpos="3">
+	<File name="..\..\src\menu.h" open="1" top="0" tabpos="11">
 		<Cursor position="815" topLine="0" />
 	</File>
-	<File name="..\..\src\player.c" open="1" top="0" tabpos="8">
-		<Cursor position="5332" topLine="146" />
+	<File name="..\..\src\player.c" open="1" top="1" tabpos="4">
+		<Cursor position="542" topLine="0" />
 	</File>
-	<File name="..\..\src\player.h" open="1" top="0" tabpos="4">
-		<Cursor position="1237" topLine="13" />
+	<File name="..\..\src\player.h" open="1" top="0" tabpos="5">
+		<Cursor position="1522" topLine="29" />
 	</File>
-	<File name="..\..\src\sound_manager.c" open="1" top="0" tabpos="9">
+	<File name="..\..\src\sound_manager.c" open="0" top="0" tabpos="9">
 		<Cursor position="824" topLine="57" />
 	</File>
-	<File name="..\..\src\sound_manager.h" open="1" top="0" tabpos="10">
+	<File name="..\..\src\sound_manager.h" open="1" top="0" tabpos="12">
 		<Cursor position="99" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

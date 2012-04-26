@@ -3,6 +3,10 @@
 
 #include <string.h>
 
+gltexture_t gltextures[MAX_GLTEXTURES];
+uint16_t    numgltextures;
+GLuint      currenttexture;
+
 void gl_draw_init(void) {
     currenttexture = -1;
     numgltextures = 0;
