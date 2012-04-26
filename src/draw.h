@@ -14,9 +14,9 @@ typedef struct {
 } gltexture_t;
 
 #define MAX_GLTEXTURES 64
-gltexture_t gltextures[MAX_GLTEXTURES];
-uint16_t    numgltextures;
-GLuint      currenttexture;
+extern gltexture_t gltextures[MAX_GLTEXTURES];
+extern uint16_t    numgltextures;
+extern GLuint      currenttexture;
 
 void gl_draw_init(void);
 void gl_draw_finish(void);

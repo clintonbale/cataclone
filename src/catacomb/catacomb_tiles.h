@@ -73,6 +73,8 @@
 #define TILE_LAST_HIDDEN   146
 #define IS_TILE_HIDDEN(x) (((x)>=TILE_FIRST_HIDDEN)&&((x)<=TILE_LAST_HIDDEN))
 
+#define IS_TILE_WALL(x) (((x) != 128) && ((x) < 153))
+
 #define TELE_MAX_ANIMATIONS 4
 #define TELE_ANIMATION_SIZE 32
 

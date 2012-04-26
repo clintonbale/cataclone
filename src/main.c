@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 
 /* draws all tiles on the top of the screen for debugging */
         int x = 0, y = 0;
-        for(int i = 0; i < 11696/8; i++) {
+        for(int i = 0; i < tiles->width/8; i++) {
             gl_draw_tile_spritesheet(tiles, i<<3, x, y);
             x+=8;
         }

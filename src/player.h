@@ -27,6 +27,20 @@ typedef enum {UP = 0,RIGHT = 1,DOWN = 2,LEFT = 3} dir_t;
 
 #define MAX_SHOT_POWER 0xE
 
+#define MAX_BULLETS 16
+
+#define BULLET_SIZE_SMALL   0
+#define BULLET_SIZE_BIG     1
+
+typedef struct {
+    vec2_t  position;   //postion in game world.
+    dir_t   direction;  //direction moving
+    byte    size;       //BULLET_SIZE_SMALL or BULLET_SIZE_BIG
+    byte    curanim;    //0 or 1 if not exploding, 0-3 if exploding
+    bool    exploding;
+    bool    active;     //determines draw and update
+} bullet_t;
+
 typedef struct {
     vec2_t  position;
     dir_t   last_dir;
@@ -34,13 +48,15 @@ typedef struct {
     byte    curanim;
     byte    shotpower;
     byte    health;
+    bool    charging;
+    bool    last_shot;
+    bullet_t bullets[MAX_BULLETS];
     byte    items[4];
     bool    directions[4]; // the keys that the player has pressed
     ushort  todraw[4];     // the four parts of the player to draw
 } player_t;
 
-gltexture_t* player_tiles;
-player_t player;
+extern player_t player;
 
 void player_init(void);
 void player_reset(void);

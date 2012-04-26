@@ -114,7 +114,8 @@ void catacomb_graphics_init() {
     256-320  : Player
     320-384  : Red Imp (2 tiles wide)
     384-448  : White Imp
-    448-492  : Bolt
+    448-480  : Bolt
+    480-492  : Animation for monster death
     492-512  : End Level/ Teleport Gate
     512-656  : Big Red Imp (3 tiles wide)
     656-684  : Unknown? Fireball?
@@ -128,7 +129,8 @@ void catacomb_graphics_init() {
     catacomb_graphics_load_tiles("PLAYER", data, tile_size, 256, 320);
     catacomb_graphics_load_tiles("REDIMP", data, tile_size, 320, 384);
     catacomb_graphics_load_tiles("WHITEIMP", data, tile_size, 384, 448);
-    catacomb_graphics_load_tiles("BOLT", data, tile_size, 448, 492);
+    catacomb_graphics_load_tiles("BOLT", data, tile_size, 448, 480);
+    catacomb_graphics_load_tiles("MONSTERDEAD", data, tile_size, 480, 492);
     catacomb_graphics_load_tiles("TELE", data, tile_size, 492, 512);
     catacomb_graphics_load_tiles("BIGREDIMP", data, tile_size, 512, 656);
     catacomb_graphics_load_tiles("BIGREDIMP_FIREBALL", data, tile_size, 656, 684);
