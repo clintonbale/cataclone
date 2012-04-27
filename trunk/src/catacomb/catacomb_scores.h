@@ -10,7 +10,7 @@ typedef struct {
     char    name[3];
 } highscore_t;
 
-highscore_t highscores[MAX_HIGHSCORES];
+const highscore_t* catacomb_scores_get(void);
 
 void catacomb_scores_load(void);
 void catacomb_scores_save(void);

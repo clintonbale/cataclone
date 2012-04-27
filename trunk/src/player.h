@@ -7,6 +7,9 @@
 #define PLAYER_WIDTH (TILE_WIDTH*2)
 #define PLAYER_HEIGHT (TILE_HEIGHT*2)
 
+#define BOLT_WIDTH (TILE_WIDTH*2)
+#define BOLT_HEIGHT (TILE_HEIGHT*2)
+
 // should be calculated if we want the game to be bigger than 320x200
 #define PLAYER_CENTER 88
 
@@ -29,16 +32,14 @@ typedef enum {UP = 0,RIGHT = 1,DOWN = 2,LEFT = 3} dir_t;
 
 #define MAX_BULLETS 16
 
-#define BULLET_SIZE_SMALL   0
-#define BULLET_SIZE_BIG     1
-
+typedef enum { BULLET_TYPE_NORMAL, BULLET_TYPE_BOLT } bullet_type_t;
 typedef struct {
-    vec2_t  position;   //postion in game world.
-    dir_t   direction;  //direction moving
-    byte    size;       //BULLET_SIZE_SMALL or BULLET_SIZE_BIG
-    byte    curanim;    //0 or 1 if not exploding, 0-3 if exploding
-    bool    exploding;
-    bool    active;     //determines draw and update
+    vec2_t        position;   //postion in game world.
+    dir_t         direction;  //direction moving
+    byte          curanim;    //0 or 1 if not exploding, 0-3 if exploding
+    bullet_type_t type;
+    bool          exploding : 1;
+    bool          active : 1;     //determines draw and update
 } bullet_t;
 
 typedef struct {

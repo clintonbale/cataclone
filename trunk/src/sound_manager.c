@@ -5,16 +5,15 @@
 #include <SDL_audio.h>
 
 //http://www.libsdl.org/intro.en/usingsound.html
-
 struct sample {
-    uint8_t *data;
-    uint32_t dpos;
-    uint32_t dlen;
+    byte *data;
+    uint dpos;
+    uint dlen;
 } sounds[NUM_SOUNDS];
 
-extern void mixaudio(void* unused, uint8_t* stream, int len) {
-    int i;
-    uint32_t amount;
+extern void mixaudio(void* unused, byte* stream, int len) {
+    uint i;
+    uint amount;
 
     for (i = 0; i < NUM_SOUNDS; ++i) {
         amount = (sounds[i].dlen-sounds[i].dpos);
@@ -27,7 +26,7 @@ extern void mixaudio(void* unused, uint8_t* stream, int len) {
 }
 
 static int sound_manager_next_index() {
-    int index;
+    uint index;
     for(index = 0; index < NUM_SOUNDS; ++index) {
         if(sounds[index].dpos == sounds[index].dlen)
             break;
@@ -69,7 +68,7 @@ void sound_manager_finish() {
 }
 
 //TODO: Add support for dpos?
-bool sound_manager_play_data(uint8_t *data, uint32_t dlen) {
+bool sound_manager_play_data(byte *data, uint dlen) {
     int index = sound_manager_next_index();
     if(index < 0) {
         return false;
@@ -92,8 +91,8 @@ bool sound_manager_play_wav(const char* wav_path) {
     }
 
     SDL_AudioSpec wave;
-    Uint8 *data;
-    Uint32 dlen;
+    byte *data;
+    uint  dlen;
 
     if ( SDL_LoadWAV(wav_path, &wave, &data, &dlen) == NULL ) {
         error("Could not load %s : %s", wav_path, SDL_GetError());

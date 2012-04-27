@@ -34,9 +34,6 @@ typedef struct {
     vec2_t spawn;
 } level_t;
 
-gltexture_t* level_textures;
-gltexture_t* tele_texture;
-
 void catacomb_level_init();
 
 void catacomb_level_change(byte level);

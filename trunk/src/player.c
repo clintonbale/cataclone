@@ -5,33 +5,41 @@
 #include "catacomb/catacomb_sound.h"
 #include "catacomb/catacomb_tiles.h"
 
-gltexture_t* tex_player;
-gltexture_t* tex_bolt;
-gltexture_t* tex_main;
 player_t player;
 
-static uint16_t player_anims[16]={
-    0<<3, 4<<3, //up
-    8<<3, //shoot up
-    12<<3, //? weird legs
-    16<<3, 20<<3, //right
-    24<<3, //shoot right
-    28<<3, //?
-    32<<3, 36<<3, //down
-    40<<3, //shoot down
-    44<<3, //?
-    48<<3, 52<<3, //left
-    56<<3, //left shoot
-    60<<3, //?
+static gltexture_t* tex_player;
+static gltexture_t* tex_bolt;
+static gltexture_t* tex_main;
+
+static const ushort player_anims[16]={
+    0<<3, 4<<3,     //UP
+    8<<3,           //SHOOT UP
+    12<<3,          //DANCE UP
+    16<<3, 20<<3,   //RIGHT
+    24<<3,          //SHOOT RIGHT
+    28<<3,          //DANCE RIGHT
+    32<<3, 36<<3,   //DOWN
+    40<<3,          //SHOOT DOWN
+    44<<3,          //DANCE DOWN
+    48<<3, 52<<3,   //LEFT
+    56<<3,          //SHOOT LEFT
+    60<<3,          //DANCE LEFT
 };
 
-static uint16_t bullet_anims[14]={
-    154<<3, 155<<3, //UP
-    156<<3, 157<<3, //RIGHT
-    158<<3, 159<<3, //DOWN
-    160<<3, 161<<3, //LEFT
+static const ushort bullet_anims[14]={
+    154<<3, 155<<3,      //UP
+    156<<3, 157<<3,      //RIGHT
+    158<<3, 159<<3,      //DOWN
+    160<<3, 161<<3,      //LEFT
     26<<3, 27<<3, 28<<3, //NORMAL WALL EXPLODE
     29<<3, 30<<3, 31<<3, //HIDDEN WALL EXPLODE
+};
+
+static const ushort bolt_anims[8] = {
+    0<<4, 4<<3,     //UP
+    8<<3, 12<<3,    //RIGHT
+    16<<3, 20<<3,   //DOWN
+    24<<3, 28<<3    //LEFT
 };
 
 void player_init(void) {
@@ -168,6 +176,7 @@ void player_check_items(void) {
     }
 }
 
+//gets the first non active bullet.
 bullet_t* next_bullet(player_t* p) {
     if(p) {
         for(byte i = 0; i < MAX_BULLETS; i++)
@@ -228,17 +237,25 @@ void player_update(float frame_time) {
                 bullet = &player.bullets[i];
                 bullet_tile = (byte*)&catacomb_level_current()->tiles[((bullet->position[1]/TILE_HEIGHT)*LEVEL_WIDTH)+(bullet->position[0]/TILE_WIDTH)];
 
+                //TODO: Add support for colliding BOLTS into walls and hidden walls.
                 if(!bullet->exploding) {
                     if(IS_TILE_WALL(*bullet_tile)) {
                         bullet->exploding = true;
+                        //so we can switch animations and draw normal bullets.
+                        bullet->type = BULLET_TYPE_NORMAL;
                         bullet->curanim = IS_TILE_HIDDEN(*bullet_tile) ? 11 : 8;
                     }
                     else if(ISDOOR(*bullet_tile)) {
-                        //no explosions for doors
+                        //no explosions for doors, just remove it
                         bullet->active = false;
                     }
                     else {
-                        bullet->curanim = !bullet->curanim;
+                        if(bullet->type == BULLET_TYPE_NORMAL) {
+                            bullet->curanim = !bullet->curanim;
+                        }
+                        else {
+                            bullet->curanim += (bullet->curanim&1) ? -1 : 1;
+                        }
                         bullet->position[0] += (bullet->direction == LEFT ? -TILE_WIDTH : bullet->direction == RIGHT ? TILE_WIDTH : 0);
                         bullet->position[1] += (bullet->direction == UP ? -TILE_HEIGHT : bullet->direction == DOWN ? TILE_HEIGHT : 0);
                     }
@@ -271,29 +288,35 @@ void player_update(float frame_time) {
         bullet_t* new_bullet = next_bullet(&player);
         if(new_bullet) {
             new_bullet->active = true;
-            new_bullet->size = player.shotpower == MAX_SHOT_POWER ? BULLET_SIZE_BIG : BULLET_SIZE_SMALL;
+            new_bullet->type = player.shotpower == MAX_SHOT_POWER ? BULLET_TYPE_BOLT : BULLET_TYPE_NORMAL;
+            //only switch firing directions when we're firing a normal projectile.
+            if(new_bullet->type == BULLET_TYPE_NORMAL)
+                player.last_shot = !player.last_shot;
             new_bullet->direction = direction;
             switch(direction) {
                 case UP:
-                    new_bullet->position[0] = player.position[0] + player.last_shot*TILE_WIDTH;
-                    new_bullet->position[1] = player.position[1] - (new_bullet->size+1)*TILE_HEIGHT;
+                    //ensure only the normal types of bullets switch sides.
+                    new_bullet->position[0] = player.position[0] + ((new_bullet->type)?0:player.last_shot*TILE_WIDTH);
+                    new_bullet->position[1] = player.position[1] - (new_bullet->type+1)*TILE_HEIGHT;
                     break;
                 case DOWN:
-                    new_bullet->position[0] = player.position[0] + player.last_shot*TILE_WIDTH;
-                    new_bullet->position[1] = player.position[1] + (new_bullet->size+1)*TILE_HEIGHT;
+                    new_bullet->position[0] = player.position[0] + ((new_bullet->type)?0:player.last_shot*TILE_WIDTH);
+                    new_bullet->position[1] = player.position[1] + (new_bullet->type+1)*TILE_HEIGHT;
                     break;
                 case LEFT:
-                    new_bullet->position[0] = player.position[0] - (new_bullet->size+1)*TILE_WIDTH;
-                    new_bullet->position[1] = player.position[1] + player.last_shot*TILE_HEIGHT;
+                    new_bullet->position[0] = player.position[0] - (new_bullet->type+1)*TILE_WIDTH;
+                    new_bullet->position[1] = player.position[1] + ((new_bullet->type)?0:player.last_shot*TILE_HEIGHT);
                     break;
                 case RIGHT:
-                    new_bullet->position[0] = player.position[0] + (new_bullet->size+1)*TILE_WIDTH;
-                    new_bullet->position[1] = player.position[1] + player.last_shot*TILE_HEIGHT;
+                    new_bullet->position[0] = player.position[0] + (new_bullet->type+1)*TILE_WIDTH;
+                    new_bullet->position[1] = player.position[1] + ((new_bullet->type)?0:player.last_shot*TILE_HEIGHT);
                     break;
             }
             //TODO: add delay between shots...
             new_bullet->curanim = 0;
-            player.last_shot = !player.last_shot;
+        }
+        else {
+            warn("All bullets are active.");
         }
         player.shotpower = 0;
     }
@@ -318,11 +341,11 @@ void player_draw(void) {
     for(byte i = 0; i < MAX_BULLETS; ++i) {
         if(player.bullets[i].active) {
             bullet = &player.bullets[i];
-
-            //TODO: Support big ass bullets!
-            if(bullet->size == BULLET_SIZE_BIG) {
-                warn("Big bullets unsupported...");
-                bullet->active = false;
+            if(bullet->type == BULLET_TYPE_BOLT) {
+                gl_draw_tile_spritesheet(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+0, bullet->position[0],             bullet->position[1]);
+                gl_draw_tile_spritesheet(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+8, bullet->position[0] + TILE_WIDTH,bullet->position[1]);
+                gl_draw_tile_spritesheet(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+16,bullet->position[0],             bullet->position[1] + TILE_HEIGHT);
+                gl_draw_tile_spritesheet(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+24,bullet->position[0] + TILE_WIDTH,bullet->position[1] + TILE_HEIGHT);
             }
             else {
                 gl_draw_tile_spritesheet(tex_main,

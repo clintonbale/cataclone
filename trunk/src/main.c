@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
     menu_push(menu_create_side_panel(main_panel_update));
 
-    gltexture_t* tiles = gl_find_gltexture("ALLTILES");
+    gltexture_t* tiles = gl_find_gltexture("BOLT");
 
     uint current_time = SDL_GetTicks();
     uint previous_time;

@@ -6,6 +6,8 @@
 #include "../draw.h"
 
 static level_t* current_level;
+static gltexture_t* tex_level;
+static gltexture_t* tex_tele;
 
 static level_t* catacomb_level_load(const char* file) {
     FILE* fp = NULL;
@@ -95,8 +97,8 @@ static void catacomb_level_free(level_t* level) {
 }
 
 void catacomb_level_init(void) {
-    level_textures = gl_find_gltexture("MAIN");
-    tele_texture = gl_find_gltexture("TELE");
+    tex_level = gl_find_gltexture("MAIN");
+    tex_tele = gl_find_gltexture("TELE");
 }
 
 //returns index that tile was found + 1
@@ -177,9 +179,9 @@ void catacomb_level_render() {
     for(int y = -32; y < 96; ++y) {
         for(int x = -32; x < 96; ++x) {
             if(x > 0 && x < LEVEL_WIDTH && y > 0 && y < LEVEL_HEIGHT)
-                gl_draw_tile_spritesheet(level_textures, current_level->tiles[(y*LEVEL_HEIGHT)+x]<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
+                gl_draw_tile_spritesheet(tex_level, current_level->tiles[(y*LEVEL_HEIGHT)+x]<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
             else
-                gl_draw_tile_spritesheet(level_textures, TILE_PINK_BACKGROUND<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
+                gl_draw_tile_spritesheet(tex_level, TILE_PINK_BACKGROUND<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
         }
     }
 
@@ -188,10 +190,10 @@ void catacomb_level_render() {
         uint x = (current_level->tele_locations[i] % LEVEL_WIDTH)<<3;
         uint y = (current_level->tele_locations[i] / LEVEL_WIDTH)<<3;
 
-        gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+0,  x,  y);
-        gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+8,  x+8,y);
-        gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+16, x,  y+8);
-        gl_draw_tile_spritesheet(tele_texture, current_level->tele_anim*TELE_ANIMATION_SIZE+24, x+8,y+8);
+        gl_draw_tile_spritesheet(tex_tele, current_level->tele_anim*TELE_ANIMATION_SIZE+0,  x,  y);
+        gl_draw_tile_spritesheet(tex_tele, current_level->tele_anim*TELE_ANIMATION_SIZE+8,  x+8,y);
+        gl_draw_tile_spritesheet(tex_tele, current_level->tele_anim*TELE_ANIMATION_SIZE+16, x,  y+8);
+        gl_draw_tile_spritesheet(tex_tele, current_level->tele_anim*TELE_ANIMATION_SIZE+24, x+8,y+8);
     }
 }
 
