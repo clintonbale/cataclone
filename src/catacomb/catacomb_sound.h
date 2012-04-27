@@ -33,8 +33,6 @@ typedef struct {
     char        name[12];
 } cat_sound;
 
-cat_sound       cat_sounds[MAX_SOUND_DEFS];
-
 void catacomb_sounds_play(const char* sound_name);
 int  catacomb_sounds_find(const char* sound_name);
 void catacomb_sounds_load(const char* file_name);

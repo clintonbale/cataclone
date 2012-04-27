@@ -1,9 +1,10 @@
 #include "catacomb_sound.h"
 #include "..\sound_manager.h"
 
-#include <stdio.h>
 #include <math.h>
 #include <SDL.h>
+
+static cat_sound cat_sounds[MAX_SOUND_DEFS];
 
 //Thanks Anders Gavare
 static byte* catacomb_sounds_raw_to_pcm(byte* raw_data, short raw_size, int* pcm_size) {

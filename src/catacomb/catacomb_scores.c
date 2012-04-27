@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static highscore_t defualt_hs[MAX_HIGHSCORES] = {
+static const highscore_t defualt_hs[MAX_HIGHSCORES] = {
     {100, 1, "JDC"},
     {100, 1, "JDC"},
     {100, 1, "JDC"},
@@ -12,6 +12,11 @@ static highscore_t defualt_hs[MAX_HIGHSCORES] = {
     {100, 1, "JDC"}
 };
 static const char* highscore_file = "TOPSCORS.CAT";
+static highscore_t highscores[MAX_HIGHSCORES];
+
+const highscore_t* catacomb_scores_get(void) {
+    return (const highscore_t*)&highscores;
+}
 
 void catacomb_scores_load(void) {
     FILE* fp = NULL;
