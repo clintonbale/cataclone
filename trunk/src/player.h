@@ -60,7 +60,7 @@ typedef struct {
 extern player_t player;
 
 void player_init(void);
-void player_reset(void);
+void player_start(void);
 
 void player_event(SDL_Event* event);
 void player_update(float frame_time);

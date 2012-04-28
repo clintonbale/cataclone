@@ -41,6 +41,10 @@
 			<Add option="-lopengl32" />
 			<Add option="-lglu32" />
 		</Linker>
+		<Unit filename="..\..\src\catacomb\catacomb.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\catacomb\catacomb.h" />
 		<Unit filename="..\..\src\catacomb\catacomb_data.h" />
 		<Unit filename="..\..\src\catacomb\catacomb_graphics.c">
 			<Option compilerVar="CC" />
