@@ -101,6 +101,10 @@ void catacomb_level_init(void) {
     tex_tele = gl_find_gltexture("TELE");
 }
 
+void catacomb_level_finish() {
+    catacomb_level_free(current_level);
+}
+
 //returns index that tile was found + 1
 static int catacomb_level_find_tile(vec2_t location, uint16_t start, byte tile_id) {
     for(uint16_t i = start; i < (LEVEL_WIDTH*LEVEL_HEIGHT); ++i) {

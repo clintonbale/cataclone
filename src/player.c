@@ -42,7 +42,7 @@ static const ushort bolt_anims[8] = {
     24<<3, 28<<3    //LEFT
 };
 
-void player_init(void) {
+void player_start(void) {
     player.position[0] = catacomb_level_current()->spawn[0] * TILE_WIDTH;
     player.position[1] = catacomb_level_current()->spawn[1] * TILE_HEIGHT;
 
@@ -55,8 +55,8 @@ void player_init(void) {
     memset(player.bullets, 0, sizeof(player.bullets));
 }
 
-void player_reset(void) {
-    player_init();
+void player_init(void) {
+    player_start();
 
     player.items[ITEM_POTION] = DEFAULT_PLAYER_POTIONS;
     player.items[ITEM_KEY] = DEFAULT_PLAYER_KEYS;

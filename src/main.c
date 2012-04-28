@@ -8,33 +8,17 @@
 #include "sound_manager.h"
 #include "menu.h"
 
-#include "catacomb/catacomb_sound.h"
-#include "catacomb/catacomb_scores.h"
-#include "catacomb/catacomb_graphics.h"
-#include "catacomb/catacomb_level.h"
-#include "catacomb/catacomb_tiles.h"
-
-void SDL_ShowFPS() {
-#define ALPHA 0.2
-    static char fpsstr[16];
-    static uint32_t fps_lasttime = 0, fps_ticks, fps_delta;
-    static float    fps_frametime, fps_framerate;
-
-    fps_ticks = SDL_GetTicks();
-    fps_delta = fps_ticks - fps_lasttime;
-    fps_lasttime = fps_ticks;
-
-    fps_frametime = ALPHA * fps_delta + (1.0 - ALPHA) * fps_frametime;
-    fps_framerate = 1000.0/fps_frametime;
-
-    sprintf((char*)&fpsstr, "FPS: %.2f", fps_framerate);
-    graphics_viewport_set_title(fpsstr);
-#undef ALPHA
-}
+#include "catacomb/catacomb.h"
 
 bool show_logo_screen();
 void draw_black_bars();
 void main_panel_update(const void*,float);
+
+void init_all();
+void finish_all();
+
+float get_frame_time(void);
+void display_fps();
 
 int main(int argc, char* argv[])
 {
@@ -43,57 +27,41 @@ int main(int argc, char* argv[])
     FILE* fout = freopen( "CON", "w", stdout );
     FILE* ferr = freopen( "CON", "w", stderr );
 #endif
-    //graphics
-    graphics_init();
-    gl_draw_init();
-    catacomb_graphics_init();
-
-    //sounds
-    sound_manager_init();
-    catacomb_sounds_load("SOUNDS.CAT");
-
-    catacomb_level_init();
-
-    bool running = true;
-    SDL_Event event;
-
-    catacomb_level_change(1);
-    player_reset();
-
-    running = show_logo_screen();
-
+    //init everything
+    init_all();
+    //load the side menu
     menu_push(menu_create_side_panel(main_panel_update));
 
-    gltexture_t* tiles = gl_find_gltexture("BOLT");
+    //gltexture_t* tiles = gl_find_gltexture("BOLT");
 
-    uint current_time = SDL_GetTicks();
-    uint previous_time;
-    float frame_time;
+    bool running = show_logo_screen();
+    bool showfps = false;
+    SDL_Event event;
 
     glEnable(GL_TEXTURE_2D);
     while(running) {
-        previous_time = current_time;
-        current_time = SDL_GetTicks();
-        frame_time = ((float)current_time - previous_time)/1000.f;
-
+        float frame_time = get_frame_time();
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_KEYUP:
-                    if(event.key.keysym.sym == SDLK_ESCAPE)
-                        running = false;
-                    else if(event.key.keysym.sym == SDLK_SPACE) {
-                        //other stuff?
-                        catacomb_level_next();
-                        player_init();
+                    switch(event.key.keysym.sym) {
+                        case SDLK_ESCAPE:
+                            running = false;
+                            break;
+                        case SDLK_F1:
+                            if(!(showfps = !showfps)) graphics_viewport_set_title("");
+                            break;
+                        case SDLK_SPACE: //TEMPORARY, for debugging.
+                            catacomb_level_next();
+                            player_start();
+                            break;
+                        case SDLK_z:
+                            menu_push(menu_create_message_box("QUIT (Y/N)? "));
+                            break;
+                        default:
+                            warn("Unhandled keypress: %c", event.key.keysym.sym);
+                            break;
                     }
-                    else if(event.key.keysym.sym == SDLK_x)
-                        player.health--;
-                    else if(event.key.keysym.sym == SDLK_c)
-                        player.shotpower++;
-                    else if(event.key.keysym.sym == SDLK_z)
-                        player.items[ITEM_KEY]++;
-                    else if(event.key.keysym.sym == SDLK_v)
-                        menu_push(menu_create_message_box("QUIT (Y/N)? "));
                     break;
                 case SDL_QUIT:
                     running = false;
@@ -117,31 +85,68 @@ int main(int argc, char* argv[])
         menu_render_all();
         draw_black_bars();
 
-/* draws all tiles on the top of the screen for debugging */
-        int x = 0, y = 0;
+        /*
+        int x = 0;
         for(int i = 0; i < tiles->width/8; i++) {
-            gl_draw_tile_spritesheet(tiles, i<<3, x, y);
+            gl_draw_tile_spritesheet(tiles, i<<3, x, 0);
             x+=8;
-        }
+        }*/
 
 
         SDL_GL_SwapBuffers();
-        //SDL_ShowFPS();
+        if(showfps) display_fps();
     }
     glDisable(GL_TEXTURE_2D);
-
-    //Cleanup...
-    menu_finish();
-    catacomb_sounds_finish();
-    sound_manager_finish();
-
-    gl_draw_finish();
-    graphics_finish();
-    catacomb_sounds_finish();
-    catacomb_graphics_finish();
+    finish_all();
 
     SDL_Quit();
     return 0;
+}
+
+void init_all() {
+    graphics_init();
+    gl_draw_init();
+    sound_manager_init();
+
+    catacomb_init_all();
+
+    player_init();
+}
+
+void finish_all() {
+    graphics_finish();
+    gl_draw_finish();
+    sound_manager_finish();
+    menu_finish();
+
+    catacomb_finish_all();
+}
+
+float get_frame_time(void) {
+    static uint current_time = 0, previous_time = 0;
+    static float frame_time = 0.0f;
+
+    previous_time = current_time;
+    current_time = SDL_GetTicks();
+    frame_time = ((float)current_time - previous_time)/1000.f;
+
+    return frame_time;
+}
+
+void display_fps() {
+    static char fpsstr[16];
+    static uint fps_lasttime = 0, fps_ticks, fps_delta;
+    static float fps_frametime, fps_framerate;
+
+    fps_ticks = SDL_GetTicks();
+    fps_delta = fps_ticks - fps_lasttime;
+    fps_lasttime = fps_ticks;
+
+    fps_frametime = 0.2f * fps_delta + (1.0 - 0.2f) * fps_frametime;
+    fps_framerate = 1000.0/fps_frametime;
+
+    sprintf((char*)&fpsstr, "FPS: %.2f", fps_framerate);
+    graphics_viewport_set_title(fpsstr);
 }
 
 #define MENU_PLAYER_HEALTH_Y 17

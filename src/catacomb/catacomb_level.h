@@ -35,6 +35,7 @@ typedef struct {
 } level_t;
 
 void catacomb_level_init();
+void catacomb_level_finish();
 
 void catacomb_level_change(byte level);
 void catacomb_level_next();
