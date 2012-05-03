@@ -1,4 +1,4 @@
-Coded by: Clinton Bale (clinton.bale@gmail.com)
+Coded by: Clinton Bale (clinton[dot]bale[at]gmail[dot]com)
 See LICENSE.txt for license information.
 
 This project is for learning purposes only. Coded in pure C and OpenGL+SDL.
