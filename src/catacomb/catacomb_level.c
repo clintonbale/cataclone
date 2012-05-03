@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "catacomb_tiles.h"
+#include "catacomb_defs.h"
 #include "catacomb_level.h"
-#include "../draw.h"
+#include "../render.h"
+#include "memory.h"
 
 static level_t* current_level;
-static gltexture_t* tex_level;
-static gltexture_t* tex_tele;
+static texture_t* tex_level;
+static texture_t* tex_tele;
 
 static level_t* catacomb_level_load(const char* file) {
     FILE* fp = NULL;
@@ -18,15 +19,15 @@ static level_t* catacomb_level_load(const char* file) {
         error("Error opening level: %s", file);
     }
 
-    level = malloc(sizeof(level_t));
+    level = memory_alloc(sizeof(level_t));
     if(!level) {
         error("Out of memory!");
     }
 
     //zero out the level
     memset(level, 0, sizeof(level_t));
-    level->spawn[0] = DEFAULT_SPAWN_X;
-    level->spawn[1] = DEFAULT_SPAWN_Y;
+    level->spawn.x = DEFAULT_SPAWN_X;
+    level->spawn.y = DEFAULT_SPAWN_Y;
 
     //TODO: Add support for big endian computers.
     uint32_t desired_size;
@@ -51,31 +52,31 @@ static level_t* catacomb_level_load(const char* file) {
             level->tiles[tile_index] = next ? next : fgetc(fp);
 
             last_tile = level->tiles[tile_index];
-            if(last_tile >= TILE_TYPE_A && last_tile <= TILE_TYPE_K) {
+            if(last_tile >= T_A && last_tile <= T_K) {
                 switch(last_tile) {
-                    case TILE_TYPE_TELE:
+                    case T_TELE:
                         //If it is a tele, add it to the tele list.
                         level->tele_locations[level->num_teles++] = tile_index;
                         break;
-                    case TILE_TYPE_SPAWN:
-                        level->spawn[0] = (tile_index) % LEVEL_WIDTH;
-                        level->spawn[1] = (tile_index) / LEVEL_WIDTH;
+                    case T_SPAWN:
+                        level->spawn.x = (tile_index) % LEVEL_WIDTH;
+                        level->spawn.y = (tile_index) / LEVEL_WIDTH;
                         break;
-                    case TILE_TYPE_WHITEIMP:
-                    case TILE_TYPE_BIGREDIMP:
-                    case TILE_TYPE_BIGPURPIMP:
-                    case TILE_TYPE_REDIMP:
-                    case TILE_TYPE_LASTBOSS:
+                    case T_MON_WHITEIMP:
+                    case T_MON_BIGREDIMP:
+                    case T_MON_BIGPURPIMP:
+                    case T_MON_REDIMP:
+                    case T_MON_LASTBOSS:
                         //store the location of the tile and the monster type
                         level->monster_spawns[level->num_monsters] = tile_index;
-                        level->monster_spawns[level->num_monsters++] |= (last_tile-TILE_TYPE_A)<<12;
+                        level->monster_spawns[level->num_monsters++] |= (last_tile-T_A)<<12;
                         break;
                     default:
-                        warn("Unhandled default tile: '%c'", 'A'+(last_tile-TILE_TYPE_A));
+                        warn("Unhandled default tile: '%c'", 'A'+(last_tile-T_A));
                         break;
                 }
                 //replace all A-K tiles with a floor tile.
-                level->tiles[tile_index] = TILE_TYPE_FLOOR;
+                level->tiles[tile_index] = T_FLOOR;
             }
             ++tile_index;
         }
@@ -90,31 +91,16 @@ static level_t* catacomb_level_load(const char* file) {
 }
 
 static void catacomb_level_free(level_t* level) {
-    if(level) {
-        free(level);
-        level = (level_t*)0;
-    }
+    memory_free(level);
 }
 
 void catacomb_level_init(void) {
-    tex_level = gl_find_gltexture("MAIN");
-    tex_tele = gl_find_gltexture("TELE");
+    tex_level = r_find_texture("MAIN");
+    tex_tele = r_find_texture("TELE");
 }
 
 void catacomb_level_finish() {
     catacomb_level_free(current_level);
-}
-
-//returns index that tile was found + 1
-static int catacomb_level_find_tile(vec2_t location, uint16_t start, byte tile_id) {
-    for(uint16_t i = start; i < (LEVEL_WIDTH*LEVEL_HEIGHT); ++i) {
-        if(current_level->tiles[i] == tile_id) {
-            location[0] = i % LEVEL_WIDTH; // x
-            location[1] = i / LEVEL_WIDTH; // y
-            return i + 1;
-        }
-    }
-    return -1;
 }
 
 void catacomb_level_remove_door(ushort x, ushort y) {
@@ -126,20 +112,20 @@ void catacomb_level_remove_door(ushort x, ushort y) {
         (byte*)&tiles[(y*LEVEL_WIDTH)+x-1]     //WEST
     };
 
-    if(ISDOOR(*adjacent[0])) {
-        *adjacent[0] = TILE_TYPE_FLOOR;
+    if(T_ISDOOR(*adjacent[0])) {
+        *adjacent[0] = T_FLOOR;
         catacomb_level_remove_door(x, y-1);
     }
-    if(ISDOOR(*adjacent[1])) {
-        *adjacent[1] = TILE_TYPE_FLOOR;
+    if(T_ISDOOR(*adjacent[1])) {
+        *adjacent[1] = T_FLOOR;
         catacomb_level_remove_door(x, y+1);
     }
-    if(ISDOOR(*adjacent[2])) {
-        *adjacent[2] = TILE_TYPE_FLOOR;
+    if(T_ISDOOR(*adjacent[2])) {
+        *adjacent[2] = T_FLOOR;
         catacomb_level_remove_door(x+1, y);
     }
-    if(ISDOOR(*adjacent[3])) {
-        *adjacent[3] = TILE_TYPE_FLOOR;
+    if(T_ISDOOR(*adjacent[3])) {
+        *adjacent[3] = T_FLOOR;
         catacomb_level_remove_door(x-1, y);
     }
 }
@@ -173,7 +159,7 @@ void catacomb_level_update(float game_time) {
     //only update frame every 0.10 seconds
     if(elapsed > 0.10f) {
         //increase the animation counter
-        current_level->tele_anim = (current_level->tele_anim + 1) % TELE_MAX_ANIMATIONS;
+        current_level->tele_anim = (current_level->tele_anim + 1) % TELE_ANIM_NUM;
         elapsed = 0;
     }
 }
@@ -183,9 +169,9 @@ void catacomb_level_render() {
     for(int y = -32; y < 96; ++y) {
         for(int x = -32; x < 96; ++x) {
             if(x > 0 && x < LEVEL_WIDTH && y > 0 && y < LEVEL_HEIGHT)
-                gl_draw_tile_spritesheet(tex_level, current_level->tiles[(y*LEVEL_HEIGHT)+x]<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
+                r_draw_tile(tex_level, current_level->tiles[(y*LEVEL_HEIGHT)+x]<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
             else
-                gl_draw_tile_spritesheet(tex_level, TILE_PINK_BACKGROUND<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
+                r_draw_tile(tex_level, T_PINK<<3, x*TILE_WIDTH, y*TILE_HEIGHT);
         }
     }
 
@@ -194,10 +180,10 @@ void catacomb_level_render() {
         uint x = (current_level->tele_locations[i] % LEVEL_WIDTH)<<3;
         uint y = (current_level->tele_locations[i] / LEVEL_WIDTH)<<3;
 
-        gl_draw_tile_spritesheet(tex_tele, current_level->tele_anim*TELE_ANIMATION_SIZE+0,  x,  y);
-        gl_draw_tile_spritesheet(tex_tele, current_level->tele_anim*TELE_ANIMATION_SIZE+8,  x+8,y);
-        gl_draw_tile_spritesheet(tex_tele, current_level->tele_anim*TELE_ANIMATION_SIZE+16, x,  y+8);
-        gl_draw_tile_spritesheet(tex_tele, current_level->tele_anim*TELE_ANIMATION_SIZE+24, x+8,y+8);
+        r_draw_tile(tex_tele, current_level->tele_anim*TELE_ANIM_SIZE+0,  x,  y);
+        r_draw_tile(tex_tele, current_level->tele_anim*TELE_ANIM_SIZE+8,  x+8,y);
+        r_draw_tile(tex_tele, current_level->tele_anim*TELE_ANIM_SIZE+16, x,  y+8);
+        r_draw_tile(tex_tele, current_level->tele_anim*TELE_ANIM_SIZE+24, x+8,y+8);
     }
 }
 

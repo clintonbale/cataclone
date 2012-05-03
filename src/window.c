@@ -1,15 +1,14 @@
-#include "graphics.h"
+#include "window.h"
 #include "common.h"
 
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#define DEFAULT_WIDTH 320
-#define DEFAULT_HEIGHT 200
-#define DEFAULT_VSYNC (1)
-#define DEFAULT_MULTISAMPLES 0
-#define DEFAULT_MULTISAMPLESBUFFS 0
-#define DEFAULT_VIDEOMODE GFX_MODE_EGA
+#define DEFAULT_WIDTH               320
+#define DEFAULT_HEIGHT              200
+#define DEFAULT_VSYNC               1
+#define DEFAULT_MULTISAMPLES        0
+#define DEFAULT_MULTISAMPLESBUFFS   0
 
 static SDL_Surface* screen;
 
@@ -21,13 +20,15 @@ static bool window_vsync;
 static int window_multisamples;
 static int window_multisamplesbuffs;
 
-static graphics_mode_t graphics_mode;
 
-const SDL_Surface* graphics_get_screen() {
-    return screen;
-}
+/*
+===============
+window_start
 
-void graphics_viewport_start() {
+Creates the screen and sets up the window.
+===============
+*/
+static void window_start() {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, window_vsync);
 
@@ -45,7 +46,15 @@ void graphics_viewport_start() {
     glOrtho(0.0f, window_width, window_height, 0.0f, 0.0f, 1.0f);
 }
 
-void graphics_init() {
+
+/*
+===============
+window_init
+
+Initializes parameters, sets tiltle, and inits SDL.
+===============
+*/
+void window_init() {
     int err = SDL_Init(SDL_INIT_VIDEO);
     if(err == -1) {
         error("Cannot initialize SDL video!");
@@ -58,41 +67,46 @@ void graphics_init() {
     window_multisamples = DEFAULT_MULTISAMPLES;
     window_multisamplesbuffs = DEFAULT_MULTISAMPLESBUFFS;
 
-    graphics_mode = DEFAULT_VIDEOMODE;
-
-    graphics_viewport_set_title("Catacomb");
-    graphics_viewport_start();
+    window_set_title("Catacomb");
+    window_start();
 }
 
-void graphics_finish() {
+
+/*
+===============
+window_finish
+===============
+*/
+void window_finish() {
     SDL_FreeSurface(screen);
 }
 
-graphics_mode_t graphics_get_mode(void) {
-    return graphics_mode;
-}
 
-void graphics_set_mode(graphics_mode_t newMode) {
-    graphics_mode = newMode;
-    //TODO: Reload tiles?
-}
-
-void graphics_set_multisamples(int multisamples) {
-    window_multisamples = multisamples > 0 ? 1 : 0;
-}
-
-int graphics_get_multisamples(void) {
-    return window_multisamples;
-}
-
-void graphics_viewport_set_title(const char* title) {
+/*
+===============
+window_set_title
+===============
+*/
+void window_set_title(const char* title) {
     SDL_WM_SetCaption(title, NULL);
 }
 
-uint graphics_viewport_height() {
+
+/*
+===============
+window_viewport_height
+===============
+*/
+uint window_viewport_height() {
     return window_height;
 }
 
-uint graphics_viewport_width() {
+
+/*
+===============
+window_viewport_width
+===============
+*/
+uint window_viewport_width() {
     return window_width;
 }

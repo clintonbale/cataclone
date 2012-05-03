@@ -11,11 +11,12 @@ struct sample {
     uint dlen;
 } sounds[NUM_SOUNDS];
 
-extern void mixaudio(void* unused, byte* stream, int len) {
-    uint i;
-    uint amount;
+bool sounds_enabled = true;
 
-    for (i = 0; i < NUM_SOUNDS; ++i) {
+static void sound_manager_mixaudio(void* unused, byte* stream, int len) {
+    int amount;
+
+    for (byte i = 0; i < NUM_SOUNDS; ++i) {
         amount = (sounds[i].dlen-sounds[i].dpos);
         if ( amount > len ) {
             amount = len;
@@ -25,6 +26,14 @@ extern void mixaudio(void* unused, byte* stream, int len) {
     }
 }
 
+
+/*
+===============
+sound_manager_next_index
+
+Gets the next available index for playing sounds.
+===============
+*/
 static int sound_manager_next_index() {
     uint index;
     for(index = 0; index < NUM_SOUNDS; ++index) {
@@ -39,6 +48,11 @@ static int sound_manager_next_index() {
 }
 
 
+/*
+===============
+sound_manager_init
+===============
+*/
 void sound_manager_init() {
     int err = SDL_Init(SDL_INIT_AUDIO);
     if(err == -1) {
@@ -46,15 +60,15 @@ void sound_manager_init() {
     }
 
     SDL_AudioSpec fmt;
-    fmt.freq = 44100;
+    fmt.freq = 22050;
     fmt.format = AUDIO_S16;
     fmt.channels = 2;
     fmt.samples = 512;
-    fmt.callback = mixaudio;
+    fmt.callback = sound_manager_mixaudio;
     fmt.userdata = NULL;
 
     if(SDL_OpenAudio(&fmt, NULL) < 0) {
-        error("Unable to open audio: %d", SDL_GetError());
+        error("Unable to open audio: %s", SDL_GetError());
     }
 
     SDL_PauseAudio(0);
@@ -62,14 +76,31 @@ void sound_manager_init() {
     memset(&sounds[0], 0, sizeof(sounds));
 }
 
+
+/*
+===============
+sound_manager_finish
+===============
+*/
 void sound_manager_finish() {
     SDL_PauseAudio(1);
     SDL_CloseAudio();
 }
 
-//TODO: Add support for dpos?
+
+/*
+===============
+sound_manager_play_data
+
+Plays raw data.
+===============
+*/
 bool sound_manager_play_data(byte *data, uint dlen) {
+    if(!sounds_enabled)
+        return true;
+
     int index = sound_manager_next_index();
+    //max sounds  playing
     if(index < 0) {
         return false;
     }
@@ -83,6 +114,12 @@ bool sound_manager_play_data(byte *data, uint dlen) {
     return true;
 }
 
+
+/*
+===============
+sound_manager_play_wav
+===============
+*/
 bool sound_manager_play_wav(const char* wav_path) {
     int index = sound_manager_next_index();
     if(index < 0) {
