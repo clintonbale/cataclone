@@ -2,7 +2,7 @@
 #define _PLAYER_H_
 
 #include <SDL.h>
-#include "draw.h"
+#include "render.h"
 
 #define PLAYER_WIDTH (TILE_WIDTH*2)
 #define PLAYER_HEIGHT (TILE_HEIGHT*2)
@@ -50,6 +50,7 @@ typedef struct {
     byte    shotpower;
     byte    health;
     bool    charging;
+    bool    strafing;
     bool    last_shot;
     bullet_t bullets[MAX_BULLETS];
     byte    items[4];
@@ -62,6 +63,7 @@ extern player_t player;
 void player_init(void);
 void player_start(void);
 
+void player_clear_input(void);
 void player_event(SDL_Event* event);
 void player_update(float frame_time);
 void player_draw(void);

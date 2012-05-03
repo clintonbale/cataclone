@@ -13,9 +13,13 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-pg" />
 					<Add option="-g" />
 					<Add option="-D_DEBUG" />
 				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="..\..\bin\catacomb_release" prefix_auto="1" extension_auto="1" />
@@ -24,28 +28,44 @@
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-fexpensive-optimizations" />
 					<Add option="-Os" />
+					<Add option="-ffunction-sections" />
+					<Add option="-fdata-sections" />
+					<Add option="-fmerge-all-constants" />
+					<Add option="-fno-default-inline" />
+					<Add option="-fno-inline-functions" />
 				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-Wshadow" />
+			<Add option="-Winit-self" />
+			<Add option="-Wredundant-decls" />
+			<Add option="-Wcast-align" />
 			<Add option="-Winline" />
+			<Add option="-Wswitch-default" />
 			<Add option="-Wall" />
-			<Add option="-std=c99" />
+			<Add option="-std=gnu99" />
+			<Add option="-Wformat=2" />
+			<Add option="-Wlogical-op" />
+			<Add option="-Wno-unused" />
 			<Add directory="..\..\ext\SDL-1.2.15\include" />
 		</Compiler>
 		<Linker>
 			<Add option="-lmingw32" />
+			<Add option="-lopengl32" />
 			<Add option="-lSDL" />
 			<Add option="-lSDLmain" />
-			<Add option="-lopengl32" />
-			<Add option="-lglu32" />
+			<Add library="..\..\ext\SDL-1.2.15\lib\libSDL.dll.a" />
+			<Add library="..\..\ext\SDL-1.2.15\lib\libSDLmain.a" />
+			<Add directory="..\..\ext\SDL-1.2.15\lib" />
 		</Linker>
-		<Unit filename="..\..\src\catacomb\catacomb.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\..\src\catacomb\catacomb.h" />
 		<Unit filename="..\..\src\catacomb\catacomb_data.h" />
+		<Unit filename="..\..\src\catacomb\catacomb_defs.h" />
 		<Unit filename="..\..\src\catacomb\catacomb_graphics.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -62,22 +82,17 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\src\catacomb\catacomb_sound.h" />
-		<Unit filename="..\..\src\catacomb\catacomb_tiles.h" />
 		<Unit filename="..\..\src\common.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\src\common.h" />
-		<Unit filename="..\..\src\draw.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\..\src\draw.h" />
-		<Unit filename="..\..\src\graphics.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\..\src\graphics.h" />
 		<Unit filename="..\..\src\main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\..\src\memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\memory.h" />
 		<Unit filename="..\..\src\menu.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -86,10 +101,18 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\src\player.h" />
+		<Unit filename="..\..\src\render.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\render.h" />
 		<Unit filename="..\..\src\sound_manager.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\src\sound_manager.h" />
+		<Unit filename="..\..\src\window.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\window.h" />
 		<Extensions>
 			<code_completion>
 				<search_path add="..\..\ext\SDL-1.2.15\include" />

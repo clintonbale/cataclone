@@ -2,9 +2,9 @@
 
 #include "catacomb_graphics.h"
 #include "catacomb_data.h"
+#include "catacomb_defs.h"
 
-#include "../draw.h"
-#include "../graphics.h"
+#include "../render.h"
 
 #define put_pixel(s,x,y,v) ((uint*)s->pixels)[((y)*s->w)+(x)]=(v)
 
@@ -17,14 +17,20 @@ static uint colormap[PIC_COLOR_COUNT] = {
 };
 
 //Gets the four colors for four pixels in the 1 byte.
-static inline void get_byte_colors(byte b, byte* colors) {
+static void get_byte_colors(byte b, byte colors[4]) {
     colors[0] = (b>>6)&3; //xx000000
     colors[1] = (b>>4)&3; //00xx0000
     colors[2] = (b>>2)&3; //0000xx00
     colors[3] = (b>>0)&3; //000000xx
 }
 
-GLuint catacomb_graphics_load_pic(const char* ident, byte* data) {
+uint catacomb_graphics_load_pic(const char* ident, byte* data) {
+    uint texture;
+    if((texture = r_find_textureid(ident))>0) {
+        warn("PIC %s.PIC already loaded!", ident);
+        return texture;
+    }
+
     SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, PIC_WIDTH, PIC_HEIGHT,32,0,0,0,0);
     if(!pic) { error("CreateRGBSurface failed: %s", SDL_GetError()); }
 
@@ -41,7 +47,7 @@ GLuint catacomb_graphics_load_pic(const char* ident, byte* data) {
         if(x == 320) { x = 0; y += 2; }
     }
 
-    GLuint texture = gl_load_texture(ident, PIC_WIDTH, PIC_HEIGHT, pic->pixels);
+    texture = r_load_texture(ident, PIC_WIDTH, PIC_HEIGHT, pic->pixels);
     SDL_FreeSurface(pic);
 
     debug("PIC %s.PIC loaded... w: %d, h: %d", ident, pic->w, pic->h);
@@ -53,49 +59,75 @@ GLuint catacomb_graphics_load_pic(const char* ident, byte* data) {
     tile_size:    is amount of bytes one tile takes
     start_index:  is the first tile index
     end_index:    is the last tile index  */
-GLuint catacomb_graphics_load_tiles(const char* ident, const byte* data, uint tile_size, uint start_index, uint end_index) {
-    SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, (end_index-start_index)*8, TILE_HEIGHT,32,0,0,0,0);
+uint catacomb_graphics_load_tiles(const char* ident, const byte* data, uint tile_size, uint start_index, uint end_index) {
+    uint texture;
+    if((texture = r_find_textureid(ident))>0) {
+        warn("Texture '%s' already loaded.", ident);
+        return texture;
+    }
+    if(start_index > end_index) {
+        error("catacomb_graphics_load_tiles: start_index > end_index");
+    }
+
+    SDL_Surface* pic = SDL_CreateRGBSurface(SDL_SWSURFACE, (int)(end_index-start_index)*TILE_WIDTH, TILE_HEIGHT, 32,0,0,0,0);
     if(!pic) { error("CreateRGBSurface failed: %s", SDL_GetError()); }
 
     //translate the tile index to bytes.
     start_index *= tile_size;
     end_index   *= tile_size;
 
-    for(uint i = start_index; i < end_index; i += tile_size) {
-        for(byte y = 0; y < TILE_HEIGHT; ++y) {
-            for(byte x = 0; x < TILE_WIDTH; ++x) {
-                byte n = data[i+y+24]>>(7-x)&1; //intensity
-                byte b = data[i+y+16]>>(7-x)&1; //blue
-                byte g = data[i+y+8 ]>>(7-x)&1; //green
-                byte r = data[i+y   ]>>(7-x)&1; //red
+    if(tile_size == EGA_TILE_SIZE) {
+        for(uint i = start_index; i < end_index; i += tile_size) {
+            for(byte y = 0; y < TILE_HEIGHT; ++y) {
+                for(byte x = 0; x < TILE_WIDTH; ++x) {
+                    byte n = data[i+y+24]>>(7-x)&1; //intensity
+                    byte b = data[i+y+16]>>(7-x)&1; //blue
+                    byte g = data[i+y+8 ]>>(7-x)&1; //green
+                    byte r = data[i+y   ]>>(7-x)&1; //red
 
-                //get the color
-                uint color = (r<<16)|(g<<8)|(b);
-                //add the intensity to the color
-                //if the color is black and has intensity, set it to grey,
-                //else, add the intensity to the original color
-                color = (!color&&n)?(0x555555):(color*(255-(n ? 0 : 0x55)));
-                put_pixel(pic, TILE_WIDTH*((i-start_index)/tile_size)+x, y, color);
+                    //get the color
+                    uint color = (uint)((r<<16)|(g<<8)|(b));
+                    //add the intensity to the color
+                    //if the color is black and has intensity, set it to grey,
+                    //else, add the intensity to the original color
+                    color = (!color&&n)?(0x555555):(color*(255-(n ? 0 : 0x55)));
+                    put_pixel(pic, TILE_WIDTH*((i-start_index)/tile_size)+x, y, color);
+                }
+            }
+        }
+    }
+    else {
+        for(uint i = start_index; i < end_index; i += tile_size) {
+            byte left[4], right[4];
+            for(byte y = 0; y < TILE_HEIGHT; ++y) {
+                get_byte_colors(data[i+(y<<1)],  (byte*)&left);
+                get_byte_colors(data[i+(y<<1)+1],(byte*)&right);
+
+                for(byte x = 0; x < TILE_WIDTH/2; ++x) {
+                    put_pixel(pic, TILE_WIDTH*((i-start_index)/tile_size)+x,               y, colormap[left[x]]);
+                    put_pixel(pic, TILE_WIDTH*((i-start_index)/tile_size)+x+(TILE_WIDTH/2),y, colormap[right[x]]);
+                }
             }
         }
     }
 
-    GLuint texture = gl_load_texture(ident, pic->w, pic->h, pic->pixels);
+    texture = r_load_texture(ident, pic->w, pic->h, pic->pixels);
     SDL_FreeSurface(pic);
 
-    debug("Texture %s loaded... w: %d, h: %d", ident, pic->w, pic->h);
+    debug("Texture '%s' loaded... w: %d, h: %d", ident, pic->w, pic->h);
 
     return texture;
 }
 
-void catacomb_graphics_init() {
+void catacomb_graphics_init_pics() {
     catacomb_graphics_load_pic("TITLE", (byte*)&TITLE_PIC);
     catacomb_graphics_load_pic("END", (byte*)&END_PIC);
+}
 
+void catacomb_graphics_init_tiles(graphics_mode_t mode) {
     byte* data = NULL;
     uint tile_size = 0;
 
-    graphics_mode_t mode = graphics_get_mode();
     if(mode == GFX_MODE_EGA) {
         data = (byte*)&EGA_DATA;
         tile_size = EGA_TILE_SIZE;
@@ -125,20 +157,20 @@ void catacomb_graphics_init() {
     1387-1487: Unknown? Another fireball? Unsure of size? could be 4 tiles @ 1387+100 or 3 tiles at 1387+75
 */
 
-    catacomb_graphics_load_tiles("MAIN",   data, tile_size, 0  , 256);
-    catacomb_graphics_load_tiles("PLAYER", data, tile_size, 256, 320);
-    catacomb_graphics_load_tiles("REDIMP", data, tile_size, 320, 384);
-    catacomb_graphics_load_tiles("WHITEIMP", data, tile_size, 384, 448);
-    catacomb_graphics_load_tiles("BOLT", data, tile_size, 448, 480);
-    catacomb_graphics_load_tiles("MONSTERDEAD", data, tile_size, 480, 492);
-    catacomb_graphics_load_tiles("TELE", data, tile_size, 492, 512);
-    catacomb_graphics_load_tiles("BIGREDIMP", data, tile_size, 512, 656);
-    catacomb_graphics_load_tiles("BIGREDIMP_FIREBALL", data, tile_size, 656, 684);
-    catacomb_graphics_load_tiles("BIGPURPIMP", data, tile_size, 684, 939);
-    catacomb_graphics_load_tiles("BIGPURPIMP_FIREBALL", data, tile_size, 939, 987);
-    catacomb_graphics_load_tiles("LASTBOSS", data, tile_size, 987, 1387);
-    catacomb_graphics_load_tiles("LASTBOSS_FIREBALL", data, tile_size, 1387, 1462);
-    catacomb_graphics_load_tiles("ALLTILES",  data, tile_size, 0  , NUM_EGA_TILES);
+    catacomb_graphics_load_tiles("MAIN",   data, tile_size, MAINTILES_LUMP_START, MAINTILES_LUMP_END);
+    catacomb_graphics_load_tiles("PLAYER", data, tile_size, PLAYER_LUMP_START, PLAYER_LUMP_END);
+    catacomb_graphics_load_tiles("REDIMP", data, tile_size, REDIMP_LUMP_START, REDIMP_LUMP_END);
+    catacomb_graphics_load_tiles("WHITEIMP", data, tile_size, WHITEIMP_LUMP_START, WHITEIMP_LUMP_END);
+    catacomb_graphics_load_tiles("BOLT", data, tile_size, BOLT_LUMP_START, BOLT_LUMP_END);
+    catacomb_graphics_load_tiles("MONSTERDEAD", data, tile_size, MONSTERDEAD_LUMP_START, MONSTERDEAD_LUMP_END);
+    catacomb_graphics_load_tiles("TELE", data, tile_size, TELE_LUMP_START, TELE_LUMP_END);
+    catacomb_graphics_load_tiles("BIGREDIMP", data, tile_size, BIGREDIMP_LUMP_START, BIGREDIMP_LUMP_END);
+    catacomb_graphics_load_tiles("BIGREDIMP_FIREBALL", data, tile_size, BIGREDIMPATK_LUMP_START, BIGREDIMPATK_LUMP_END);
+    catacomb_graphics_load_tiles("BIGPURPIMP", data, tile_size, BIGPURPIMP_LUMP_START, BIGPURPIMP_LUMP_END);
+    catacomb_graphics_load_tiles("BIGPURPIMP_FIREBALL", data, tile_size, BIGPURPIMPATK_LUMP_START, BIGPURPIMPATK_LUMP_END);
+    catacomb_graphics_load_tiles("LASTBOSS", data, tile_size, LASTBOSS_LUMP_START, LASTBOSS_LUMP_END);
+    catacomb_graphics_load_tiles("LASTBOSS_FIREBALL", data, tile_size, LASTBOSSATK_LUMP_START, LASTBOSSATK_LUMP_END);
+    //catacomb_graphics_load_tiles("ALLTILES",  data, tile_size, 0, NUM_TILES);
 }
 
 void catacomb_graphics_finish() {

@@ -2,7 +2,7 @@
 #define _CATACOMB_LEVEL_H
 
 #include "../common.h"
-#include "../draw.h"
+#include "../render.h"
 
 #define LEVEL_WIDTH 64
 #define LEVEL_HEIGHT 64

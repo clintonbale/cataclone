@@ -1,15 +1,21 @@
 #include "player.h"
 #include "common.h"
-#include "graphics.h"
+#include "window.h"
 #include "catacomb/catacomb_level.h"
 #include "catacomb/catacomb_sound.h"
-#include "catacomb/catacomb_tiles.h"
+#include "catacomb/catacomb_defs.h"
+#include <SDL_opengl.h>
+
+//
+// Ignore the warning for clearing the player array.
+//
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
 player_t player;
 
-static gltexture_t* tex_player;
-static gltexture_t* tex_bolt;
-static gltexture_t* tex_main;
+static texture_t* tex_player;
+static texture_t* tex_bolt;
+static texture_t* tex_main;
 
 static const ushort player_anims[16]={
     0<<3, 4<<3,     //UP
@@ -42,9 +48,17 @@ static const ushort bolt_anims[8] = {
     24<<3, 28<<3    //LEFT
 };
 
+
+/*
+===============
+player_start
+
+Sets up a player for the level.
+===============
+*/
 void player_start(void) {
-    player.position[0] = catacomb_level_current()->spawn[0] * TILE_WIDTH;
-    player.position[1] = catacomb_level_current()->spawn[1] * TILE_HEIGHT;
+    player.position.x = catacomb_level_current()->spawn.x * TILE_WIDTH;
+    player.position.y = catacomb_level_current()->spawn.y * TILE_HEIGHT;
 
     player.last_dir = RIGHT; //all maps start facing right.
     player.todraw[0] = player_anims[(player.last_dir<<2)+player.curanim]+0;
@@ -55,6 +69,14 @@ void player_start(void) {
     memset(player.bullets, 0, sizeof(player.bullets));
 }
 
+
+/*
+===============
+player_init
+
+Loads textures needed and resets all players items/health.
+===============
+*/
 void player_init(void) {
     player_start();
 
@@ -65,11 +87,31 @@ void player_init(void) {
 
     player.health = DEFAULT_PLAYER_HEALTH;
 
-    tex_player = gl_find_gltexture("PLAYER");
-    tex_bolt = gl_find_gltexture("BOLT");
-    tex_main = gl_find_gltexture("MAIN");
+    tex_player = r_find_texture("PLAYER");
+    tex_bolt = r_find_texture("BOLT");
+    tex_main = r_find_texture("MAIN");
 }
 
+
+/*
+===============
+player_clear_input
+===============
+*/
+void player_clear_input(void) {
+    //quickly set all 4 (chars) in the array to 0.
+    *(int32_t*)&player.directions = 0;
+    player.charging = player.strafing = false;
+}
+
+
+/*
+===============
+player_event
+
+Hanles player input
+===============
+*/
 void player_event(SDL_Event* event) {
     switch(event->type) {
         case SDL_KEYDOWN:
@@ -79,6 +121,7 @@ void player_event(SDL_Event* event) {
                 case SDLK_LEFT:  player.directions[LEFT] = true; break;
                 case SDLK_RIGHT: player.directions[RIGHT]= true; break;
                 case SDLK_LCTRL: player.charging = true; break;
+                case SDLK_LALT:  player.strafing = true; break;
                 default: break;
             }
         break;
@@ -89,17 +132,27 @@ void player_event(SDL_Event* event) {
                 case SDLK_LEFT:  player.directions[LEFT] = false; break;
                 case SDLK_RIGHT: player.directions[RIGHT]= false; break;
                 case SDLK_LCTRL: player.charging = false; break;
+                case SDLK_LALT:  player.strafing = false; break;
                 default: break;
             }
         break;
+        default: break;
     }
 }
 
-//Gets colliding tiles,
+
+/*
+===============
+player_colliding_tiles
+
+Gets the four colliding tiles for the player.
+Returns whether or not the player is out of bounds.
+===============
+*/
 bool player_colliding_tiles(byte collisions[4]) {
     const byte* level_tiles = (const byte*)&catacomb_level_current()->tiles;
-    const int x = player.position[0]/TILE_WIDTH;
-    const int y = player.position[1]/TILE_HEIGHT;
+    const int x = player.position.x/TILE_WIDTH;
+    const int y = player.position.y/TILE_HEIGHT;
 
     collisions[0] = level_tiles[(y*LEVEL_HEIGHT)+x];      //top left
     collisions[1] = level_tiles[((y+1)*LEVEL_WIDTH)+x];  //bottom left
@@ -109,21 +162,29 @@ bool player_colliding_tiles(byte collisions[4]) {
     return (y < 0 || x < 0 || y > LEVEL_HEIGHT || x > LEVEL_WIDTH);
 }
 
+
+/*
+===============
+player_check_collision
+
+Checks if the player is colliding with anything.
+===============
+*/
 bool player_check_collision(void) {
     static byte collisions[4];
     if(player_colliding_tiles(collisions))
         return true;
 
     for(byte i = 0; i < sizeof(collisions); ++i) {
-        if(IS_TILE_WALL(collisions[i])) {
+        if(T_ISWALL(collisions[i])) {
             catacomb_sounds_play("blocked");
             return true;
         }
         //door that requires key
-        else if(collisions[i] == TILE_TYPE_V_DOOR || collisions[i] == TILE_TYPE_H_DOOR) {
+        else if(collisions[i] == T_DOOR_V || collisions[i] == T_DOOR_H) {
             if(player.items[ITEM_KEY] > 0) {
                 player.items[ITEM_KEY]--;
-                catacomb_level_remove_door(player.position[0]/TILE_WIDTH, player.position[1]/TILE_HEIGHT);
+                catacomb_level_remove_door(player.position.x/TILE_WIDTH, player.position.y/TILE_HEIGHT);
                 catacomb_sounds_play("opendoor");
             }
             else {
@@ -136,10 +197,18 @@ bool player_check_collision(void) {
     return false;
 }
 
+
+/*
+===============
+player_check_items
+
+Checks if the player is on any items, and adds them to inventory.
+===============
+*/
 void player_check_items(void) {
     const byte* level_tiles = (const byte*)&catacomb_level_current()->tiles;
-    const int x = player.position[0]/TILE_WIDTH;
-    const int y = player.position[1]/TILE_HEIGHT;
+    const int x = player.position.x/TILE_WIDTH;
+    const int y = player.position.y/TILE_HEIGHT;
     byte* tiles[4] = {
         (byte*)&level_tiles[(y*LEVEL_HEIGHT)+x],
         (byte*)&level_tiles[((y+1)*LEVEL_WIDTH)+x],
@@ -148,44 +217,56 @@ void player_check_items(void) {
     };
     for(byte i = 0; i < 4; ++i) {
         switch(*tiles[i]) {
-            case TILE_ITEM_KEY:
+            case T_KEY:
                 player.items[ITEM_KEY]++;
-                *tiles[i] = TILE_TYPE_FLOOR;
+                *tiles[i] = T_FLOOR;
 
                 catacomb_sounds_play("item");
                 break;
-            case TILE_ITEM_POTION:
+            case T_POTION:
                 player.items[ITEM_POTION]++;
-                *tiles[i] = TILE_TYPE_FLOOR;
+                *tiles[i] = T_FLOOR;
 
                 catacomb_sounds_play("item");
                 break;
-            case TILE_ITEM_SCROLL:
+            case T_SCROLL:
                 player.items[ITEM_BOLT]++;
-                *tiles[i] = TILE_TYPE_FLOOR;
+                *tiles[i] = T_FLOOR;
 
                 catacomb_sounds_play("item");
                 break;
-            case TILE_ITEM_TREASURE:
+            case T_TREASURE:
                 player.score += 500;
-                *tiles[i] = TILE_TYPE_FLOOR;
+                *tiles[i] = T_FLOOR;
 
                 catacomb_sounds_play("treasure");
                 break;
+            default: break;
         }
     }
 }
 
-//gets the first non active bullet.
-bullet_t* next_bullet(player_t* p) {
-    if(p) {
-        for(byte i = 0; i < MAX_BULLETS; i++)
-            if(!p->bullets[i].active)
-                return &p->bullets[i];
-    }
+
+/*
+===============
+player_next_bullet
+
+Gets the first non active bullet. NULL if no bullet.
+===============
+*/
+static bullet_t* player_next_bullet(void) {
+    for(byte i = 0; i < MAX_BULLETS; i++)
+        if(!player.bullets[i].active)
+            return &player.bullets[i];
     return NULL;
 }
 
+
+/*
+===============
+player_update
+===============
+*/
 void player_update(float frame_time) {
     static float charge_timer = 0.0f;
     static float move_timer = 0.0f;
@@ -196,37 +277,56 @@ void player_update(float frame_time) {
     fire_anim_timer -= frame_time;
     bullet_timer += frame_time;
 
-    //default to last direction
+    //
+    // Default to last direction
+    //
     dir_t direction = player.last_dir;
     bool move = false;
     for(byte i = 0; i < 4; ++i) {
         //Get the first direction key pressed and set it
         if(player.directions[i]) { direction = i; move = true; break; }
     }
-    //only move if time sinse last move is > 0.05;
+    //
+    // Only move if time sinse last move is > 0.05;
+    //
     if(move && move_timer > 0.05f) {
         move_timer = 0.0f;
-        ushort ox = player.position[0], oy = player.position[1];
+        ushort ox = player.position.x, oy = player.position.y;
 
-        //animate the move
+        //
+        // Animate the move (animates even if we dont move!)
+        //
         player.curanim = player.curanim ? 0 : 1;
-        //move
-        player.position[0] += (direction == LEFT) ? -TILE_WIDTH  : (direction == RIGHT) ? TILE_WIDTH  : 0;
-        player.position[1] += (direction == UP)   ? -TILE_HEIGHT : (direction == DOWN)  ? TILE_HEIGHT : 0;
+
+        player.position.x += (direction == LEFT) ? -TILE_WIDTH  : (direction == RIGHT) ? TILE_WIDTH  : 0;
+        player.position.y += (direction == UP)   ? -TILE_HEIGHT : (direction == DOWN)  ? TILE_HEIGHT : 0;
         if(player_check_collision()) {
-            player.position[0] = ox;
-            player.position[1] = oy;
+           //
+           // Collsion, reset position back to the old position.
+           //
+           player.position.x = ox;
+           player.position.y = oy;
         }
-        else player_check_items();
+        else {
+            player_check_items();
+            //TODO: Monster check?
+        }
 
         //DEBUG STUFF
         static byte colliding_tiles[4];
         player_colliding_tiles(colliding_tiles);
-        static char ss[32];
-        sprintf(ss, "pos: %d, 0: %d, 1: %d, 2: %d, 3: %d", player.position[0]/8,
+        static char ss[64];
+        sprintf(ss, "pos: %d, 0: %d, 1: %d, 2: %d, 3: %d", player.position.x/8,
                 colliding_tiles[0], colliding_tiles[1], colliding_tiles[2], colliding_tiles[3]);
-        graphics_viewport_set_title(ss);
+        window_set_title(ss);
     }
+    //
+    // If we're strafing, put the direction back to what it was
+    // this will allow us to strafe/shoot properly on draw/shoot calls.
+    //
+    if(player.strafing)
+        direction = player.last_dir;
+
 
     if(bullet_timer > 0.025f) {
         bullet_timer = 0.0f;
@@ -235,18 +335,23 @@ void player_update(float frame_time) {
         for(byte i = 0; i < MAX_BULLETS; ++i) {
             if(player.bullets[i].active) {
                 bullet = &player.bullets[i];
-                bullet_tile = (byte*)&catacomb_level_current()->tiles[((bullet->position[1]/TILE_HEIGHT)*LEVEL_WIDTH)+(bullet->position[0]/TILE_WIDTH)];
+                bullet_tile = (byte*)&catacomb_level_current()->tiles[((bullet->position.y/TILE_HEIGHT)*LEVEL_WIDTH)+(bullet->position.x/TILE_WIDTH)];
 
                 //TODO: Add support for colliding BOLTS into walls and hidden walls.
                 if(!bullet->exploding) {
-                    if(IS_TILE_WALL(*bullet_tile)) {
+                    if(T_ISWALL(*bullet_tile)) {
                         bullet->exploding = true;
-                        //so we can switch animations and draw normal bullets.
+                        //
+                        // Make it a small bullet so we can switch
+                        // animations and draw normal bullets.
+                        //
                         bullet->type = BULLET_TYPE_NORMAL;
-                        bullet->curanim = IS_TILE_HIDDEN(*bullet_tile) ? 11 : 8;
+                        bullet->curanim = T_ISHIDDEN(*bullet_tile) ? 11 : 8;
                     }
-                    else if(ISDOOR(*bullet_tile)) {
-                        //no explosions for doors, just remove it
+                    else if(T_ISDOOR(*bullet_tile)) {
+                        //
+                        // No explosions for doors, just remove it
+                        //
                         bullet->active = false;
                     }
                     else {
@@ -256,15 +361,15 @@ void player_update(float frame_time) {
                         else {
                             bullet->curanim += (bullet->curanim&1) ? -1 : 1;
                         }
-                        bullet->position[0] += (bullet->direction == LEFT ? -TILE_WIDTH : bullet->direction == RIGHT ? TILE_WIDTH : 0);
-                        bullet->position[1] += (bullet->direction == UP ? -TILE_HEIGHT : bullet->direction == DOWN ? TILE_HEIGHT : 0);
+                        bullet->position.x += (bullet->direction == LEFT ? -TILE_WIDTH : bullet->direction == RIGHT ? TILE_WIDTH : 0);
+                        bullet->position.y += (bullet->direction == UP ? -TILE_HEIGHT : bullet->direction == DOWN ? TILE_HEIGHT : 0);
                     }
                 }
                 else {
                     bullet->curanim++;
-                    if(IS_TILE_HIDDEN(*bullet_tile) && bullet->curanim == 13) {
+                    if(T_ISHIDDEN(*bullet_tile) && bullet->curanim == 13) {
                         bullet->exploding = bullet->active = false;
-                        *bullet_tile = TILE_TYPE_FLOOR;
+                        *bullet_tile = T_FLOOR;
                     }
                     else if(bullet->curanim == 10)
                         bullet->exploding = bullet->active = false;
@@ -272,7 +377,6 @@ void player_update(float frame_time) {
             }
         }
     }
-
 
     if(player.charging && player.shotpower < MAX_SHOT_POWER && charge_timer > 0.05) {
         charge_timer = 0.0f;
@@ -285,38 +389,43 @@ void player_update(float frame_time) {
         player.todraw[3] = player_anims[(direction<<2)+2]+24;
         fire_anim_timer = 0.15f;
 
-        bullet_t* new_bullet = next_bullet(&player);
+        bullet_t* new_bullet = player_next_bullet();
         if(new_bullet) {
             new_bullet->active = true;
             new_bullet->type = player.shotpower == MAX_SHOT_POWER ? BULLET_TYPE_BOLT : BULLET_TYPE_NORMAL;
-            //only switch firing directions when we're firing a normal projectile.
+            //
+            // Only switch firing directions when we're firing a normal projectile.
+            //
             if(new_bullet->type == BULLET_TYPE_NORMAL)
                 player.last_shot = !player.last_shot;
             new_bullet->direction = direction;
             switch(direction) {
                 case UP:
                     //ensure only the normal types of bullets switch sides.
-                    new_bullet->position[0] = player.position[0] + ((new_bullet->type)?0:player.last_shot*TILE_WIDTH);
-                    new_bullet->position[1] = player.position[1] - (new_bullet->type+1)*TILE_HEIGHT;
+                    new_bullet->position.x = player.position.x + ((new_bullet->type)?0:player.last_shot*TILE_WIDTH);
+                    new_bullet->position.y = player.position.y - (new_bullet->type+1)*TILE_HEIGHT;
                     break;
                 case DOWN:
-                    new_bullet->position[0] = player.position[0] + ((new_bullet->type)?0:player.last_shot*TILE_WIDTH);
-                    new_bullet->position[1] = player.position[1] + (new_bullet->type+1)*TILE_HEIGHT;
+                    new_bullet->position.x = player.position.x + ((new_bullet->type)?0:player.last_shot*TILE_WIDTH);
+                    new_bullet->position.y = player.position.y + (new_bullet->type+1)*TILE_HEIGHT;
                     break;
                 case LEFT:
-                    new_bullet->position[0] = player.position[0] - (new_bullet->type+1)*TILE_WIDTH;
-                    new_bullet->position[1] = player.position[1] + ((new_bullet->type)?0:player.last_shot*TILE_HEIGHT);
+                    new_bullet->position.x = player.position.x - (new_bullet->type+1)*TILE_WIDTH;
+                    new_bullet->position.y = player.position.y + ((new_bullet->type)?0:player.last_shot*TILE_HEIGHT);
                     break;
                 case RIGHT:
-                    new_bullet->position[0] = player.position[0] + (new_bullet->type+1)*TILE_WIDTH;
-                    new_bullet->position[1] = player.position[1] + ((new_bullet->type)?0:player.last_shot*TILE_HEIGHT);
+                    new_bullet->position.x = player.position.x + (new_bullet->type+1)*TILE_WIDTH;
+                    new_bullet->position.y = player.position.y + ((new_bullet->type)?0:player.last_shot*TILE_HEIGHT);
+                    break;
+                default:
+                    warn("Invalid direction: %d", direction);
                     break;
             }
             //TODO: add delay between shots...
             new_bullet->curanim = 0;
         }
         else {
-            warn("All bullets are active.");
+            warn("All bullets are active. Cannot create bullet.");
         }
         player.shotpower = 0;
     }
@@ -329,34 +438,40 @@ void player_update(float frame_time) {
     player.last_dir = direction;
 }
 
+
+/*
+===============
+player_draw
+===============
+*/
 void player_draw(void) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(player.position[0]+PLAYER_CENTER-(graphics_viewport_width()/2.0f) - PLAYER_WIDTH,
-            player.position[0]+PLAYER_CENTER+(graphics_viewport_width()/2.0f) - PLAYER_WIDTH,
-            player.position[1]+(graphics_viewport_height()/2.0f) + PLAYER_HEIGHT - (TILE_HEIGHT/2),
-            player.position[1]-(graphics_viewport_height()/2.0f) + PLAYER_HEIGHT - (TILE_HEIGHT/2), 0.0f, 1.0f);
+    glOrtho(player.position.x+PLAYER_CENTER-(window_viewport_width()/2.0f) - PLAYER_WIDTH,
+            player.position.x+PLAYER_CENTER+(window_viewport_width()/2.0f) - PLAYER_WIDTH,
+            player.position.y+(window_viewport_height()/2.0f) + PLAYER_HEIGHT - (TILE_HEIGHT/2),
+            player.position.y-(window_viewport_height()/2.0f) + PLAYER_HEIGHT - (TILE_HEIGHT/2), 0.0f, 1.0f);
 
     bullet_t* bullet;
     for(byte i = 0; i < MAX_BULLETS; ++i) {
         if(player.bullets[i].active) {
             bullet = &player.bullets[i];
             if(bullet->type == BULLET_TYPE_BOLT) {
-                gl_draw_tile_spritesheet(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+0, bullet->position[0],             bullet->position[1]);
-                gl_draw_tile_spritesheet(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+8, bullet->position[0] + TILE_WIDTH,bullet->position[1]);
-                gl_draw_tile_spritesheet(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+16,bullet->position[0],             bullet->position[1] + TILE_HEIGHT);
-                gl_draw_tile_spritesheet(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+24,bullet->position[0] + TILE_WIDTH,bullet->position[1] + TILE_HEIGHT);
+                r_draw_tile(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+0, bullet->position.x,             bullet->position.y);
+                r_draw_tile(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+8, bullet->position.x + TILE_WIDTH,bullet->position.y);
+                r_draw_tile(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+16,bullet->position.x,             bullet->position.y + TILE_HEIGHT);
+                r_draw_tile(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+24,bullet->position.x + TILE_WIDTH,bullet->position.y + TILE_HEIGHT);
             }
             else {
-                gl_draw_tile_spritesheet(tex_main,
+                r_draw_tile(tex_main,
                                          bullet_anims[(bullet->exploding) ? bullet->curanim : ((bullet->direction*2)+bullet->curanim)],
-                                         bullet->position[0], bullet->position[1]);
+                                         bullet->position.x, bullet->position.y);
             }
         }
     }
 
-    gl_draw_tile_spritesheet(tex_player, player.todraw[0], player.position[0],             player.position[1]);
-    gl_draw_tile_spritesheet(tex_player, player.todraw[1], player.position[0] + TILE_WIDTH,player.position[1]);
-    gl_draw_tile_spritesheet(tex_player, player.todraw[2], player.position[0],             player.position[1] + TILE_HEIGHT);
-    gl_draw_tile_spritesheet(tex_player, player.todraw[3], player.position[0] + TILE_WIDTH,player.position[1] + TILE_HEIGHT);
+    r_draw_tile(tex_player, player.todraw[0], player.position.x,             player.position.y);
+    r_draw_tile(tex_player, player.todraw[1], player.position.x + TILE_WIDTH,player.position.y);
+    r_draw_tile(tex_player, player.todraw[2], player.position.x,             player.position.y + TILE_HEIGHT);
+    r_draw_tile(tex_player, player.todraw[3], player.position.x + TILE_WIDTH,player.position.y + TILE_HEIGHT);
 }

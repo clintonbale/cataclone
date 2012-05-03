@@ -7,43 +7,41 @@
 static cat_sound cat_sounds[MAX_SOUND_DEFS];
 
 //Thanks Anders Gavare
-static byte* catacomb_sounds_raw_to_pcm(byte* raw_data, short raw_size, int* pcm_size) {
-    static const double dt = 1.0/44100.0;
-    static const double freqdiv = 1193180.0;
-    static const int short_while = 44100/128;
-    const unsigned int new_size = (short_while * 4 * ((raw_size) / 2));
+static byte* catacomb_sounds_raw_to_pcm(byte* raw_data, ushort raw_size, int* pcm_size) {
+    static const double dt = 1.0/22050.0;
+    static const double freqdiv = 1192030.0;
+    static const uint short_while = 22050/128;
+    const uint new_size = (short_while * 4 * ((raw_size) / 2));
     double t = 0.0;
 
-    byte* pcm = (byte*)malloc(new_size);
-    memset(pcm, 0, new_size);
-    if(!pcm) {
-        error("Out of memory.");
-    }
+    //empty sound, just return a NULL ptr.
+    if(raw_data[0]==0xff && raw_data[1]==0xff)
+        return NULL;
+
+    byte* pcm = (byte*)memory_calloc(new_size);
     if(!pcm_size) {
         error("catacomb_sounds_raw_to_pcm: pcm_size is NULL.");
     }
     *pcm_size = new_size;
 
-    unsigned int cur = 0;
-    for(unsigned c = 0; c < raw_size; c += 2) {
-        if(raw_data[0]!=0xff && raw_data[1]!=0xff) {
-            int freq = raw_data[c]+raw_data[c+1]*256;
-            for (uint j=0; j < short_while; ++j)
-            {
-                double y = freq ? 10000.0 * sin(2.0*M_PI*freqdiv/(double)freq*t) : 0.0;
+    uint cur = 0;
+    for(ushort c = 0; c < raw_size; c += 2) {
+        uint freq = raw_data[c]+raw_data[c+1]*256;
+        for (uint j = 0; j < short_while; ++j)
+        {
+            double y = freq ? 8000 * sin(2.0*M_PI*freqdiv/(double)freq*t) : 0;
 
-                if (y>1) y=10000;
-                if (y<1) y=-10000;
+            if (y < 1.0) y = -8000;
 
-                t += dt;
-                int b1 = ((int)y) & 255;
-                int b2 = ((int)y) / 256;
+            t += dt;
 
-                pcm[cur++] = b1;
-                pcm[cur++] = b2;
-                pcm[cur++] = b1;
-                pcm[cur++] = b2;
-            }
+            int b1 = ((int)y) & 255;
+            int b2 = ((int)y) / 256;
+
+            pcm[cur++] = b1;
+            pcm[cur++] = b2;
+            pcm[cur++] = b1;
+            pcm[cur++] = b2;
         }
     }
     if(new_size != cur) {
@@ -112,7 +110,8 @@ void catacomb_sounds_load(const char* file_name) {
     catacomb_sounds_finish();
 
     for(i = 0; i < MAX_SOUND_DEFS; i++) {
-        sound_size = defs[i+1].offset - defs[i].offset;
+        //subtract 2 because of the two 0xFF at the end of the sound that indicate it is the end.
+        sound_size = defs[i+1].offset - defs[i].offset - 2;
 
         //Don't load unused sounds!
         if(NO_UNUSED_SOUNDS && !strcmp("->UNUSED<-", defs[i].name))
@@ -130,7 +129,6 @@ void catacomb_sounds_load(const char* file_name) {
         if(fread(&raw_sound_data, 1, sound_size, fp) != sound_size) {
             error("catacomb_sounds_load: Error loading sound '%s'", defs[i].name);
         }
-
         cat_sounds[i].sound_data = catacomb_sounds_raw_to_pcm((byte*)&raw_sound_data, sound_size, (int*)&cat_sounds[i].size);
 
         debug("Sound '%s' loaded...", cat_sounds[i].name);
@@ -144,7 +142,7 @@ void catacomb_sounds_load(const char* file_name) {
 void catacomb_sounds_finish(void) {
     for(int i = 0; i < MAX_SOUND_DEFS; i++) {
         if(cat_sounds[i].sound_data) {
-            free(cat_sounds[i].sound_data);
+            memory_free(cat_sounds[i].sound_data);
         }
     }
     //empty the arr
