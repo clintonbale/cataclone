@@ -75,20 +75,16 @@ int catacomb_sounds_find(const char* sound_name) {
 }
 
 void catacomb_sounds_load(const char* file_name) {
-    FILE* fp = NULL;
-    byte raw_sound_data[MAX_SOUND_SIZE];
-    cat_sound_header header;
-    cat_sound_def defs[MAX_SOUND_DEFS];
-    ushort i, sound_size;
     uint loaded_size = 0;
 
-    memset(&header, 0, sizeof(cat_sound_header));
-    memset(&defs, 0, sizeof(cat_sound_def)*MAX_SOUND_DEFS);
+    cat_sound_header header = {0};
+    cat_sound_def defs[MAX_SOUND_DEFS] = {0};
+    byte raw_sound_data[MAX_SOUND_SIZE];
 
     if(!file_name)
         error("catacomb_load_sound: NULL file_name");
 
-    fp = fopen(file_name, "rb");
+    FILE* fp = fopen(file_name, "rb");
     if(!fp)
         error("catacomb_load_sound: Cannot open file '%s'", file_name);
 
@@ -101,7 +97,7 @@ void catacomb_sounds_load(const char* file_name) {
     }
 
     //TODO: Add support for BIG-ENDIAN
-    for(i = 0; i < MAX_SOUND_DEFS; i++) {
+    for(byte i = 0; i < MAX_SOUND_DEFS; i++) {
         if(fread(&defs[i], 1, sizeof(cat_sound_def), fp) != sizeof(cat_sound_def))
             error("catacomb_load_sound: Error reading SND definition %d", i);
     }
@@ -109,17 +105,21 @@ void catacomb_sounds_load(const char* file_name) {
     //Safely remove and clean all existing sounds...
     catacomb_sounds_finish();
 
-    for(i = 0; i < MAX_SOUND_DEFS; i++) {
+    cat_sound* snd;
+    byte num_sounds = 0;
+    for(byte i = 0; i < MAX_SOUND_DEFS; i++) {
         //subtract 2 because of the two 0xFF at the end of the sound that indicate it is the end.
-        sound_size = defs[i+1].offset - defs[i].offset - 2;
+        ushort sound_size = defs[i+1].offset - defs[i].offset - 2;
 
         //Don't load unused sounds!
-        if(NO_UNUSED_SOUNDS && !strcmp("->UNUSED<-", defs[i].name))
+        if(NO_UNUSED_SOUNDS && defs[i].flags == 0x1)
             continue;
 
-        cat_sounds[i].priority = defs[i].priority;
-        cat_sounds[i].flags = defs[i].flags;
-        strcpy(cat_sounds[i].name, defs[i].name);
+        snd = &cat_sounds[num_sounds++];
+
+        snd->priority = defs[i].priority;
+        snd->flags = defs[i].flags;
+        strcpy(snd->name, defs[i].name);
 
         //Seek to the data offset
         if(fseek(fp, defs[i].offset, SEEK_SET)) {
@@ -129,12 +129,13 @@ void catacomb_sounds_load(const char* file_name) {
         if(fread(&raw_sound_data, 1, sound_size, fp) != sound_size) {
             error("catacomb_sounds_load: Error loading sound '%s'", defs[i].name);
         }
-        cat_sounds[i].sound_data = catacomb_sounds_raw_to_pcm((byte*)&raw_sound_data, sound_size, (int*)&cat_sounds[i].size);
 
-        debug("Sound '%s' loaded...", cat_sounds[i].name);
-        loaded_size += cat_sounds[i].size;
+        snd->sound_data = catacomb_sounds_raw_to_pcm((byte*)&raw_sound_data, sound_size, (int*)&snd->size);
+
+        debug("Sound '%s' loaded...", snd->name);
+        loaded_size += snd->size;
     }
-    debug("Loaded %.4f MB of sounds...", loaded_size/1024.0/1024.0);
+    debug("Loaded %d sounds @ %.4f MB...", num_sounds, loaded_size/1024.0/1024.0);
 
     fclose(fp);
 }
