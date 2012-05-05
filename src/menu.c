@@ -162,10 +162,10 @@ void menu_event_all(SDL_Event* evt) {
 menu_update_all
 ===============
 */
-void menu_update_all(float gt) {
+void menu_update_all(float dt) {
     for(byte i = 0; i < num_menus; ++i) {
         if(menu_stack[i] && menu_stack[i]->update)
-            menu_stack[i]->update(menu_stack[i], gt);
+            menu_stack[i]->update(menu_stack[i], dt);
     }
 }
 

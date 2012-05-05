@@ -25,7 +25,7 @@ void    menu_free(menu_t* menu);
 
 void    menu_render_all(void);
 void    menu_event_all(SDL_Event* evt);
-void    menu_update_all(float gt);
+void    menu_update_all(float dt);
 
 void    menu_render(const menu_t* menu);
 void    menu_add_text(const menu_t* menu, ushort x, ushort y, const char* text);
