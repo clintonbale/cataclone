@@ -49,25 +49,27 @@ int main(int argc, char* argv[])
     catacomb_graphics_init_pics();
 
     graphics_mode_t mode = GFX_MODE_EGA;
-    //show logo screen
-    running = show_logo_screen(&mode);
-
-    //init the tiles (based on loading screen selection) and level
-    catacomb_sounds_load("SOUNDS.CAT");
-    catacomb_graphics_init_tiles(mode);
-    catacomb_level_init();
-    catacomb_level_change(1);
-
-    //Must be initialized after textures are loaded.
-    player_init();
-
-    //load the side menu
-    menu_push(menu_create_side_panel(main_panel_update));
+    //show logo screen, and init if we want to continue.
 
     bool showfps = false;
     SDL_Event event;
 
-    glEnable(GL_TEXTURE_2D);
+    if((running = show_logo_screen(&mode))) {
+        //init the tiles (based on loading screen selection) and level
+        catacomb_sounds_load("SOUNDS.CAT");
+        catacomb_graphics_init_tiles(mode);
+        catacomb_level_init();
+        catacomb_level_change(1);
+
+        //Must be initialized after textures are loaded.
+        player_init();
+
+        //load the side menu
+        menu_push(menu_create_side_panel(main_panel_update));
+
+        glEnable(GL_TEXTURE_2D);
+        catacomb_sounds_play("foundsound");
+    }
     while(running) {
         float frame_time = get_frame_time();
         while(SDL_PollEvent(&event)) {
@@ -81,7 +83,8 @@ int main(int argc, char* argv[])
                             catacomb_level_next();
                             player_start();
                             break;
-                        default: break;
+                        default:
+                            break;
                     }
                     break;
                 case SDL_KEYDOWN:
@@ -109,13 +112,15 @@ int main(int argc, char* argv[])
                             player_clear_input();
                             menu_push(menu_create_simple_box("RESET GAME (Y/N)?*", panel_blob_update, reset_panel_event));
                             continue;
-                        default: break;
+                        default:
+                            break;
                     }
                     break;
                 case SDL_QUIT:
                     running = false;
                     break;
-                default: break;
+                default:
+                    break;
             }
 
             menu_event_all(&event);
@@ -125,7 +130,6 @@ int main(int argc, char* argv[])
                 player_event(&event);
         }
 
-        //Updating...
         player_update(frame_time);
         catacomb_level_update(frame_time);
         menu_update_all(frame_time);
@@ -168,7 +172,7 @@ void finish_all() {
 }
 
 float get_frame_time(void) {
-    static uint current_time = 0, previous_time = 0;
+    static ulong current_time = 0, previous_time = 0;
     static float frame_time = 0.0f;
 
     previous_time = current_time;
@@ -279,9 +283,11 @@ void quit_panel_event(const void* ptr, SDL_Event* evt) {
 #endif
 }
 
-void panel_blob_update(const void* ptr, float gt) {
+#define BLOB_UPDATE_RATE 0.15f
+
+void panel_blob_update(const void* ptr, float dt) {
     static float elapsed = 1.0f;
-    elapsed += gt;
+    elapsed += dt;
 
     const menu_t* menu = (const menu_t*)ptr;
     if(!menu->extra) error("Erroneous menu_t.");
@@ -298,8 +304,8 @@ void panel_blob_update(const void* ptr, float gt) {
         }
     }
 
-    if(elapsed > 0.15f) {
-        elapsed = 0.0f;
+    if(elapsed > BLOB_UPDATE_RATE) {
+        elapsed -= BLOB_UPDATE_RATE;
         menu->data[(extra[EXTRA_BLOB_LOCATION_Y]*menu->size.x)+extra[EXTRA_BLOB_LOCATION_X]] = T_MNU_BLOB+extra[EXTRA_BLOB_ANIMATION];
         extra[EXTRA_BLOB_ANIMATION] = (extra[EXTRA_BLOB_ANIMATION]+1)%4;
     }
@@ -311,13 +317,13 @@ void panel_blob_update(const void* ptr, float gt) {
 #define MENU_ITEM_OFFSET 108
 
 void main_panel_update(const void* ptr, float gt) {
-    //Buffer for all int to string conversions
-    static char buffer[16];
     //Store the last updated stuff so we dont have
     //to update everything all the itme.
     static byte last_health = 0;
     static byte last_shotpower = 0;
     static byte last_items[4] = {0,0,0,0};
+    //Buffer for all int to string conversions
+    char buffer[16];
     const menu_t* menu = (const menu_t*)ptr;
 
     sprintf(&buffer[0], "%-2d", catacomb_level_current()->level_number);

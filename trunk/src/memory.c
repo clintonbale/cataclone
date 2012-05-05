@@ -136,7 +136,8 @@ void memory_free(void* ptr) {
     base->size = 0;
 
     free(base);
-    base = (void*)0;
+    base = NULL;
+    ptr = NULL;
 
     memory_total_frees++;
 }

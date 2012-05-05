@@ -6,7 +6,7 @@
 
 #define DEFAULT_WIDTH               320
 #define DEFAULT_HEIGHT              200
-#define DEFAULT_VSYNC               1
+#define DEFAULT_VSYNC               0
 #define DEFAULT_MULTISAMPLES        0
 #define DEFAULT_MULTISAMPLESBUFFS   0
 
