@@ -19,13 +19,8 @@ static level_t* catacomb_level_load(const char* file) {
         error("Error opening level: %s", file);
     }
 
-    level = memory_alloc(sizeof(level_t));
-    if(!level) {
-        error("Out of memory!");
-    }
+    level = memory_calloc(sizeof(level_t));
 
-    //zero out the level
-    memset(level, 0, sizeof(level_t));
     level->spawn.x = DEFAULT_SPAWN_X;
     level->spawn.y = DEFAULT_SPAWN_Y;
 
