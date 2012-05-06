@@ -36,9 +36,8 @@ typedef enum { BULLET_TYPE_NORMAL, BULLET_TYPE_BOLT } bullet_type_t;
 typedef struct {
     vec2_t        position;   //postion in game world.
     dir_t         direction;  //direction moving
-    byte          curanim;    //0 or 1 if not exploding, 0-3 if exploding
+    byte          curanim;    //0 or 1 if not exploding
     bullet_type_t type;
-    bool          exploding : 1;
     bool          active : 1;     //determines draw and update
 } bullet_t;
 

@@ -60,6 +60,7 @@
 //
 // Level tile macros.
 //
+#define T_ISEXPLO(x)    ((x)>=26&&(x)<=31)
 #define T_ISDOOR(x)     ((x)==T_DOOR_V||(x)==T_DOOR_H)
 #define T_ISWALL(x)     ((x)!=T_FLOOR&&(x)<153)
 #define T_ISHIDDEN(x)   (((x)>=T_HIDDEN_START)&&((x)<=T_HIDDEN_END))
