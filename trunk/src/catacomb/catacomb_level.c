@@ -19,7 +19,7 @@ static level_t* catacomb_level_load(const char* file) {
         error("Error opening level: %s", file);
     }
 
-    level = memory_calloc(sizeof(level_t));
+    level = (level_t*)memory_calloc(sizeof(level_t));
 
     level->spawn.x = DEFAULT_SPAWN_X;
     level->spawn.y = DEFAULT_SPAWN_Y;
@@ -125,7 +125,7 @@ void catacomb_level_remove_door(ushort x, ushort y) {
     }
 }
 
-const level_t* catacomb_level_current(void) {
+inline const level_t* catacomb_level_current(void) {
     if(current_level) {
         return current_level;
     }

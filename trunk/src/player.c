@@ -29,16 +29,14 @@ static const ushort player_anims[16]={
     44<<3,          //DANCE DOWN
     48<<3, 52<<3,   //LEFT
     56<<3,          //SHOOT LEFT
-    60<<3,          //DANCE LEFT
+    60<<3          //DANCE LEFT
 };
 
 static const ushort bullet_anims[14]={
     154<<3, 155<<3,      //UP
     156<<3, 157<<3,      //RIGHT
     158<<3, 159<<3,      //DOWN
-    160<<3, 161<<3,      //LEFT
-    26<<3, 27<<3, 28<<3, //NORMAL WALL EXPLODE
-    29<<3, 30<<3, 31<<3, //HIDDEN WALL EXPLODE
+    160<<3, 161<<3      //LEFT
 };
 
 static const ushort bolt_anims[8] = {
@@ -48,6 +46,24 @@ static const ushort bolt_anims[8] = {
     24<<3, 28<<3    //LEFT
 };
 
+static const ushort explosion_anims[6] = {
+    26, 27, 28,//NORMAL WALL EXPLODE
+    29, 30, 31 //HIDDEN WALL EXPLODE
+};
+
+#define MAX_EXPLOSIONS          32
+#define EXPLOSION_TYPE_NORMAL   0
+#define EXPLOSION_TYPE_HIDDEN   1
+#define EXPLOSION_ANIM_SIZE     3
+#define EXPLOSION_UPDATE_RATE   0.16f
+typedef struct {
+    byte*   tile;
+    byte    original;
+    byte    type;
+    byte    curanim; //0-2 if 3 go back to original.
+    bool    active;
+} explosion_t;
+static explosion_t explosions[MAX_EXPLOSIONS];
 
 /*
 ===============
@@ -181,7 +197,7 @@ bool player_check_collision(void) {
             return true;
         }
         //door that requires key
-        else if(collisions[i] == T_DOOR_V || collisions[i] == T_DOOR_H) {
+        else if(T_ISDOOR(collisions[i])) {
             if(player.items[ITEM_KEY] > 0) {
                 player.items[ITEM_KEY]--;
                 catacomb_level_remove_door(player.position.x/TILE_WIDTH, player.position.y/TILE_HEIGHT);
@@ -193,7 +209,6 @@ bool player_check_collision(void) {
             return true;
         }
     }
-
     return false;
 }
 
@@ -261,6 +276,173 @@ static bullet_t* player_next_bullet(void) {
     return NULL;
 }
 
+/*
+===============
+bullet_check_collisions
+
+Gets collisions for a bulllet
+Returns the number of collisions.
+===============
+*/
+#define COLLISION_TYPE_NORMAL 0
+#define COLLISION_TYPE_HIDDEN 1
+#define COLLISION_TYPE_DOOR   2
+static byte bullet_check_collisions(const bullet_t* b, byte* collisions[4], byte collision_type[4]) {
+    const byte* level_tiles = catacomb_level_current()->tiles;
+
+    byte num_collisions = 0;
+    if(b->type == BULLET_TYPE_NORMAL) {
+        collisions[0] = (byte*)&level_tiles[((b->position.y/TILE_HEIGHT)*LEVEL_WIDTH)+(b->position.x/TILE_WIDTH)];
+        if(T_ISHIDDEN(*collisions[0])) {
+            collision_type[0] = COLLISION_TYPE_HIDDEN;
+            num_collisions = 1;
+        }
+        else if(T_ISWALL(*collisions[0])) {
+            collision_type[0] = COLLISION_TYPE_NORMAL;
+            num_collisions = 1;
+        }
+        else if(T_ISDOOR(*collisions[0])) {
+            collision_type[0] = COLLISION_TYPE_DOOR;
+            num_collisions = 1;
+        }
+    }
+    else { //BULLET_TYPE_BOLT
+        const int x = b->position.x/TILE_WIDTH;
+        const int y = b->position.y/TILE_HEIGHT;
+
+        collisions[0] = (byte*)&level_tiles[(y*LEVEL_HEIGHT)+x];     //top left
+        collisions[1] = (byte*)&level_tiles[((y+1)*LEVEL_WIDTH)+x];  //bottom left
+        collisions[2] = (byte*)&level_tiles[(y*LEVEL_HEIGHT)+x+1];   //top right
+        collisions[3] = (byte*)&level_tiles[((y+1)*LEVEL_WIDTH)+x+1];//bottom right
+
+        static char ss[64];
+        sprintf(ss, "0: %d, 1: %d, 2: %d, 3: %d", *collisions[0], *collisions[1], *collisions[2], *collisions[3]);
+        window_set_title(ss);
+
+        for(byte i = 0; i < 4; ++i) {
+            if(T_ISHIDDEN(*collisions[i])) {
+                collision_type[i] = COLLISION_TYPE_HIDDEN;
+                ++num_collisions;
+            }
+            else if(T_ISWALL(*collisions[i]) && !T_ISEXPLO(*collisions[i])) {
+                collision_type[i] = COLLISION_TYPE_NORMAL;
+                ++num_collisions;
+            }
+            else if(T_ISDOOR(*collisions[i])) {
+                collision_type[i] = COLLISION_TYPE_DOOR;
+                ++num_collisions;
+            }
+        }
+    }
+    return num_collisions;
+}
+
+static explosion_t* create_explosion(byte* tile, byte type) {
+    if(T_ISEXPLO(*tile))
+        return NULL;
+    for(byte i = 0; i < MAX_EXPLOSIONS; ++i) {
+        if(!explosions[i].active) {
+            explosions[i].type = type;
+            explosions[i].curanim = 0;
+            explosions[i].tile = tile;
+            explosions[i].original = *tile;
+            explosions[i].active = true;
+
+            return &explosions[i];
+        }
+    }
+    return NULL;
+}
+
+static void update_explosions(float dt) {
+    static float explosion_timer = 0.0f;
+    explosion_timer += dt;
+
+    if(explosion_timer > EXPLOSION_UPDATE_RATE) {
+        for(byte i = 0; i < MAX_EXPLOSIONS; ++i) {
+            if(explosions[i].active) {
+                explosion_t* exp = &explosions[i];
+                //Done exploding?
+                if(exp->curanim == EXPLOSION_ANIM_SIZE)
+                {
+                    exp->active = false;
+                    //Set the tile for the explosion to the original tile that the explosion
+                    //was covering.
+                    *exp->tile = exp->original;
+                }
+                else
+                {
+                    //Animate!
+                    *exp->tile = explosion_anims[(exp->type*EXPLOSION_ANIM_SIZE)+exp->curanim++];
+                }
+            }
+        }
+        explosion_timer = 0.0f;
+    }
+}
+
+static void update_bullets(float gt) {
+    static float bullet_timer = 0.0f;
+    bullet_timer += gt;
+
+    if(bullet_timer > 0.025f) {
+        for(byte b = 0; b < MAX_BULLETS; ++b) {
+            if(player.bullets[b].active) {
+                bullet_t* bullet = &player.bullets[b];
+
+                if(bullet->type == BULLET_TYPE_NORMAL) {
+                    bullet->curanim = !bullet->curanim;
+                }
+                else {
+                    bullet->curanim += (bullet->curanim&1) ? -1 : 1;
+                }
+                //TODO: Stabalize this code! I shouldn't have to initialize collision_types;
+                //TODO: Fix tiles that don't get removed with bolts.
+                byte *bullet_collisions[4] = {(byte*)0}, collision_types[4] = {255};
+                byte  num_collisions = bullet_check_collisions(bullet, bullet_collisions, collision_types);
+                for(byte i = 0; i < num_collisions; ++i) {
+                    switch(collision_types[i]) {
+                        case COLLISION_TYPE_NORMAL:
+                        {
+                            if(!create_explosion(bullet_collisions[i], EXPLOSION_TYPE_NORMAL))
+                                debug("Failed creating explosion %d", i);
+                            //Only allow one explosion animation.
+                            if(bullet->type == BULLET_TYPE_BOLT)
+                                    i = num_collisions;
+                            bullet->active = false;
+                        }
+                        break;
+                        case COLLISION_TYPE_HIDDEN:
+                        {
+                            *bullet_collisions[i] = T_FLOOR;
+                            if(!create_explosion(bullet_collisions[i], EXPLOSION_TYPE_HIDDEN))
+                                debug("Failed creating explosion %d", i);
+
+                            if(bullet->type != BULLET_TYPE_BOLT)
+                                bullet->active = false;
+                        }
+                        break;
+                        case COLLISION_TYPE_DOOR:
+                        {
+                            //
+                            // Just remove bullets that collide with doors, they make no effects.
+                            //
+                            bullet->active = false;
+                        }
+                        break;
+                        default: break;
+                    }
+                }
+
+                if(bullet->active) {
+                    bullet->position.x += (bullet->direction == LEFT ? -TILE_WIDTH : bullet->direction == RIGHT ? TILE_WIDTH : 0);
+                    bullet->position.y += (bullet->direction == UP ? -TILE_HEIGHT : bullet->direction == DOWN ? TILE_HEIGHT : 0);
+                }
+            }
+        }
+        bullet_timer = 0.0f;
+    }
+}
 
 /*
 ===============
@@ -271,11 +453,11 @@ void player_update(float frame_time) {
     static float charge_timer = 0.0f;
     static float move_timer = 0.0f;
     static float fire_anim_timer = 0.0f;
-    static float bullet_timer = 0.0f;
     move_timer += frame_time;
     charge_timer += frame_time;
     fire_anim_timer -= frame_time;
-    bullet_timer += frame_time;
+
+    update_explosions(frame_time);
 
     //
     // Default to last direction
@@ -311,14 +493,6 @@ void player_update(float frame_time) {
             player_check_items();
             //TODO: Monster check?
         }
-
-        //DEBUG STUFF
-        static byte colliding_tiles[4];
-        player_colliding_tiles(colliding_tiles);
-        static char ss[64];
-        sprintf(ss, "pos: %d, 0: %d, 1: %d, 2: %d, 3: %d", player.position.x/8,
-                colliding_tiles[0], colliding_tiles[1], colliding_tiles[2], colliding_tiles[3]);
-        window_set_title(ss);
     }
     //
     // If we're strafing, put the direction back to what it was
@@ -327,56 +501,7 @@ void player_update(float frame_time) {
     if(player.strafing)
         direction = player.last_dir;
 
-
-    if(bullet_timer > 0.025f) {
-        bullet_timer = 0.0f;
-        byte* bullet_tile;
-        bullet_t* bullet;
-        for(byte i = 0; i < MAX_BULLETS; ++i) {
-            if(player.bullets[i].active) {
-                bullet = &player.bullets[i];
-                bullet_tile = (byte*)&catacomb_level_current()->tiles[((bullet->position.y/TILE_HEIGHT)*LEVEL_WIDTH)+(bullet->position.x/TILE_WIDTH)];
-
-                //TODO: Add support for colliding BOLTS into walls and hidden walls.
-                if(!bullet->exploding) {
-                    if(T_ISWALL(*bullet_tile)) {
-                        bullet->exploding = true;
-                        //
-                        // Make it a small bullet so we can switch
-                        // animations and draw normal bullets.
-                        //
-                        bullet->type = BULLET_TYPE_NORMAL;
-                        bullet->curanim = T_ISHIDDEN(*bullet_tile) ? 11 : 8;
-                    }
-                    else if(T_ISDOOR(*bullet_tile)) {
-                        //
-                        // No explosions for doors, just remove it
-                        //
-                        bullet->active = false;
-                    }
-                    else {
-                        if(bullet->type == BULLET_TYPE_NORMAL) {
-                            bullet->curanim = !bullet->curanim;
-                        }
-                        else {
-                            bullet->curanim += (bullet->curanim&1) ? -1 : 1;
-                        }
-                        bullet->position.x += (bullet->direction == LEFT ? -TILE_WIDTH : bullet->direction == RIGHT ? TILE_WIDTH : 0);
-                        bullet->position.y += (bullet->direction == UP ? -TILE_HEIGHT : bullet->direction == DOWN ? TILE_HEIGHT : 0);
-                    }
-                }
-                else {
-                    bullet->curanim++;
-                    if(T_ISHIDDEN(*bullet_tile) && bullet->curanim == 13) {
-                        bullet->exploding = bullet->active = false;
-                        *bullet_tile = T_FLOOR;
-                    }
-                    else if(bullet->curanim == 10)
-                        bullet->exploding = bullet->active = false;
-                }
-            }
-        }
-    }
+    update_bullets(frame_time);
 
     if(player.charging && player.shotpower < MAX_SHOT_POWER && charge_timer > 0.05) {
         charge_timer = 0.0f;
@@ -463,9 +588,7 @@ void player_draw(void) {
                 r_draw_tile(tex_bolt, bolt_anims[(bullet->direction<<1)+bullet->curanim]+24,bullet->position.x + TILE_WIDTH,bullet->position.y + TILE_HEIGHT);
             }
             else {
-                r_draw_tile(tex_main,
-                                         bullet_anims[(bullet->exploding) ? bullet->curanim : ((bullet->direction*2)+bullet->curanim)],
-                                         bullet->position.x, bullet->position.y);
+                r_draw_tile(tex_main, bullet_anims[(bullet->direction*2)+bullet->curanim], bullet->position.x, bullet->position.y);
             }
         }
     }

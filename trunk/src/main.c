@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
         menu_push(menu_create_side_panel(main_panel_update));
 
         glEnable(GL_TEXTURE_2D);
-        catacomb_sounds_play("foundsound");
     }
     while(running) {
         float frame_time = get_frame_time();
