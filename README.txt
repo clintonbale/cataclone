@@ -4,9 +4,9 @@ See LICENSE.txt for license information.
 This project is for learning purposes only. Coded in pure C and OpenGL+SDL.
 SDL is only used for the audio and input, all rendering is done in OpenGL.
 
-We intend to provide support for original game files and sounds, as well
-as support for custom content. Game files will not be included in the source
-and you must obtain them on your own.
+I intend to provide support for original game files and sounds, as well
+as support for custom content. Game files are included inside of
+catacomb_data.h in static byte arrays.
 
 The original Catacomb for DOS can be found and downloaded here: 
 http://www.classicdosgames.com/game/Catacomb.html
